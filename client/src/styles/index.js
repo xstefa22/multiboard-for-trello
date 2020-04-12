@@ -49,9 +49,13 @@ export const GlobalStyle = createGlobalStyle`
         line-height: 20px;
         font-weight: 400;
     }
+
+    a {
+        color: #172b4d;
+    }
 `
 
-export const BoardWrapper = styled.div`
+export const StyledBoardWrapper = styled.div`
     background-color: rgb(0, 121, 191);
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -77,7 +81,7 @@ export const BoardWrapper = styled.div`
 `
 
 
-export const ListWrapper = styled.div`
+export const StyledListWrapper = styled.div`
     width: 272px;
     margin: 0 4px;
     box-sizing: border-box;
@@ -127,7 +131,7 @@ export const ListWrapper = styled.div`
     }
 `
 
-export const ListContent = styled.div`
+export const StyledListContent = styled.div`
     background-color: #dfe1e6;
     border-radius: 3px;
     box-sizing: border-box;
@@ -138,7 +142,7 @@ export const ListContent = styled.div`
     white-space: normal;
 `
 
-export const ListHeader = styled.div`
+export const StyledListHeader = styled.div`
     flex: 0 0 auto;
     min-height: 20px;
     padding: 10px 8px;
@@ -155,7 +159,7 @@ export const ListHeader = styled.div`
     }
 `
 
-export const ListCards = styled.div`
+export const StyledListCards = styled.div`
     flex: 1 1 auto;
     margin: 0 4px;
     min-height: 0;
@@ -165,7 +169,7 @@ export const ListCards = styled.div`
     z-index: 1;
 `
 
-export const CardWrapper = styled.div`
+export const StyledCardWrapper = styled.div`
     background-color: #fff;
     border-radius: 3px;
     box-shadow: 0 1px 0 rgba(9,30,66,.25);
@@ -197,22 +201,25 @@ export const CardWrapper = styled.div`
         top: 2px;
         visibility: hidden;
         z-index: 40;
+
+        &:hover {
+            background-color: #ebecf0;
+            opacity: 1;
+        }
     }
 
     &:hover {
         color: #091e42;
         background-color: #f4f5f7;
         border-bottom-color: rgba(9,30,66,.25);
-    }
 
-    &:hover .card-operations {
-        background-color: #ebecf0;
-        opacity: 1;
-        visibility: visible;
+        .card-operations {
+            visibility: visible;
+        }
     }
 `
 
-export const CardComposer = styled.div`
+export const StyledCardComposer = styled.div`
     padding: 0px 6px;
     padding-bottom: 8px;
 
@@ -238,7 +245,7 @@ export const CardComposer = styled.div`
     }
 `
 
-export const Input = styled.input.attrs({ type: 'text' })`
+export const StyledInput = styled.input.attrs({ type: 'text' })`
     background-color: #fafbfc;
     border: none;
     box-shadow: inset 0 0 0 2px #dfe1e6;
@@ -292,7 +299,7 @@ export const Input = styled.input.attrs({ type: 'text' })`
     }
 `
 
-export const TextArea = styled.textarea`
+export const StyledTextArea = styled.textarea`
     background-color: #fafbfc;
     border: none;
     box-shadow: inset 0 0 0 2px #dfe1e6;
@@ -386,13 +393,18 @@ export const TextArea = styled.textarea`
     }
 `
 
-export const Select = styled.select`
+export const StyledSelect = styled.select`
     max-height: 300px;
     width: 256px;
     margin-bottom: 8px;
+
+    &.popover-select {
+        margin-bottom: 14px;
+        width: 100%;
+    }
 `
 
-export const SelectLabel = styled.span`
+export const StyledSelectLabel = styled.span`
     color: #5e6c84;
     display: block;
     font-size: 12px;
@@ -400,7 +412,7 @@ export const SelectLabel = styled.span`
     margin-bottom: 0;
 `
 
-export const SelectValue = styled.span`
+export const StyledSelectValue = styled.span`
     display: block;
     font-size: 14px;
     line-height: 20px;
@@ -408,14 +420,14 @@ export const SelectValue = styled.span`
     text-overflow: ellipsis;
 `
 
-export const OptGroup = styled.optgroup`
+export const StyledOptGroup = styled.optgroup`
     font-weight: 700;
     color: inherit;
     font: inherit;
     margin: 0;
 `
 
-export const Submit = styled.input.attrs({ type: 'submit' })`
+export const StyledSubmit = styled.input.attrs({ type: 'submit' })`
     background-color: rgba(9,30,66,.04);
     border-radius: 3px;
     box-shadow: none;
@@ -456,6 +468,10 @@ export const Submit = styled.input.attrs({ type: 'submit' })`
         padding-right: 24px;
     }
 
+    &.full {
+        width: 100%;
+    }
+
     &.mod-list-add-button {
         float: left;
         min-height: 32px;
@@ -482,7 +498,7 @@ export const Submit = styled.input.attrs({ type: 'submit' })`
     }
 `
 
-export const Icon = styled.div`
+export const StyledIcon = styled.div`
     align-items: center;
     cursor: pointer;
     display: flex;
@@ -588,7 +604,7 @@ export const Icon = styled.div`
     }
 `
 
-export const FormGrid = styled.div`
+export const StyledFormGrid = styled.div`
     display: flex;
     flex-wrap: wrap;
     width: 100%;
@@ -609,7 +625,7 @@ export const FormGrid = styled.div`
     }
 `
 
-export const ButtonLink = styled.div`
+export const StyledButtonLink = styled.div`
     background-color: rgba(9,30,66,.04);
     box-shadow: none;
     border: none;
@@ -656,7 +672,7 @@ export const ButtonLink = styled.div`
         color: #fff;
     }
 
-    ${Select} {
+    ${StyledSelect} {
         border: none;
         cursor: pointer;
         height: 50px;
@@ -690,12 +706,12 @@ export const ButtonLink = styled.div`
     }
 `
 
-export const CardLabels = styled.div`
+export const StyledCardLabels = styled.div`
     overflow: auto;
     position: relative;
 `
 
-export const CardTitle = styled.span`
+export const StyledCardTitle = styled.span`
     clear: both;
     display: block;
     margin: 0 0 4px;
@@ -704,7 +720,7 @@ export const CardTitle = styled.span`
     word-wrap: break-word;
 `
 
-export const CardLabel = styled.div`
+export const StyledCardLabel = styled.div`
     background-color: #b3bac5;
     border-radius: 4px;
     color: #fff;
@@ -819,7 +835,7 @@ export const CardLabel = styled.div`
     }
 `
 
-export const CardBadges = styled.div`
+export const StyledCardBadges = styled.div`
     float: left;
     width: 100%;
     margin-left: -2px;
@@ -844,7 +860,7 @@ export const CardBadges = styled.div`
     }
 `
 
-export const DialogOverlay = styled.div`
+export const StyledDialogOverlay = styled.div`
     color: #172b4d;
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Noto Sans,Ubuntu,Droid Sans,Helvetica Neue,sans-serif;
     font-size: 14px;
@@ -867,7 +883,7 @@ export const DialogOverlay = styled.div`
     }
 `
 
-export const DialogWrapper = styled.div`
+export const StyledDialogWrapper = styled.div`
     background-color: #f4f5f7;
     border-radius: 2px;
     display: block;
@@ -879,14 +895,14 @@ export const DialogWrapper = styled.div`
     z-index: 25;
 `
 
-export const DialogHeader = styled.div`
+export const StyledDialogHeader = styled.div`
     margin: 12px 40px 8px 56px;
     min-height: 32px;
     position: relative;
     z-index: 1;
 `
 
-export const DialogContent = styled.div`
+export const StyledDialogContent = styled.div`
     float: left;
     margin: 0;
     overflow-x: hidden;
@@ -898,7 +914,7 @@ export const DialogContent = styled.div`
     z-index: 0;
 `
 
-export const DialogTitle = styled.div`
+export const StyledDialogTitle = styled.div`
     margin: 4px 0 0;
     padding: 8px 0 0;
 
@@ -908,7 +924,7 @@ export const DialogTitle = styled.div`
     }
 `
 
-export const DialogHeaderInlineContent = styled.div`
+export const StyledDialogHeaderInlineContent = styled.div`
     cursor: default;
     display: inline-block;
     margin: 4px 8px 4px 2px;
@@ -918,15 +934,15 @@ export const DialogHeaderInlineContent = styled.div`
     }
 `
 
-export const DialogBadges = styled.div`
+export const StyledDialogBadges = styled.div`
     margin-top: 8px;
     margin-left: 40px;
 `
 
-export const DialogDescription = styled.div`
+export const StyledDialogDescription = styled.div`
 `
 
-export const DialogModule = styled.div`
+export const StyledDialogModule = styled.div`
     clear: both;
     margin-left: 40px;
     margin-bottom: 24px;
@@ -937,7 +953,7 @@ export const DialogModule = styled.div`
     }
 `
 
-export const DialogModuleTitle = styled.div`
+export const StyledDialogModuleTitle = styled.div`
     border-bottom: none;
     display: flex;
     align-items: center;
@@ -965,7 +981,7 @@ export const DialogModuleTitle = styled.div`
     }
 `
 
-export const DialogSidebar = styled.div`
+export const StyledDialogSidebar = styled.div`
     float: right;
     padding: 0 16px 8px 8px;
     width: 168px;
@@ -973,7 +989,7 @@ export const DialogSidebar = styled.div`
     z-index: 10;
 `
 
-export const DialogSidebarSection = styled.div`
+export const StyledDialogSidebarSection = styled.div`
     clear: both;
     margin-bottom: 24px;
     position: relative;
@@ -990,7 +1006,7 @@ export const DialogSidebarSection = styled.div`
     }
 `
 
-export const DialogArchiveBanner = styled.div`
+export const StyledDialogArchiveBanner = styled.div`
     background-color: #fdfae5;
     background-image: linear-gradient(to bottom right,rgba(0,0,0,.05) 25%,transparent 0,transparent 50%,rgba(0,0,0,.05) 0,rgba(0,0,0,.05) 75%,transparent 0,transparent);
     background-size: 14px 14px;
@@ -999,7 +1015,7 @@ export const DialogArchiveBanner = styled.div`
     position: relative;
 `
 
-export const Description = styled.div`
+export const StyledDescription = styled.div`
     cursor: pointer;
     position: relative;
     word-break: break-word;
@@ -1007,7 +1023,7 @@ export const Description = styled.div`
     overflow-wrap: break-word; 
 `
 
-export const Text = styled.p`
+export const StyledText = styled.p`
     &.fake-text-area {
         box-shadow: none;
         border: none;
@@ -1029,28 +1045,28 @@ export const Text = styled.p`
     }
 `
 
-export const EditControls = styled.div`
+export const StyledEditControls = styled.div`
     clear: both;
     display: flex;
     flex-direction: row;
     margin-top: 8px;
 `
 
-export const H2 = styled.h2`
+export const StyledH2 = styled.h2`
     &.detail-title {
         margin-right: 4px;
         margin-bottom: 0;
     }
 `
 
-export const CardDetailItem = styled.div`
+export const StyledCardDetailItem = styled.div`
     display: block;
     float: left;
     margin: 0 8px 8px 0;
     max-width: 100%;
 `
 
-export const CardDetailItemHeader = styled.h3`
+export const StyledCardDetailItemHeader = styled.h3`
     color: #5e6c84;
     font-size: 12px;
     font-weight: 500;
@@ -1066,7 +1082,7 @@ export const CardDetailItemHeader = styled.h3`
     overflow: hidden;
 `
 
-export const CardDetailItemAddButton = styled.div`
+export const StyledCardDetailItemAddButton = styled.div`
     background-color: rgba(9,30,66,.04);
     box-shadow: none;
     border: none;
@@ -1088,7 +1104,7 @@ export const CardDetailItemAddButton = styled.div`
     }
 `
 
-export const CardDetailItemContent = styled.div`
+export const StyledCardDetailItemContent = styled.div`
     &.due-date-badge {
         display: flex;
         flex-direction: row;
@@ -1101,7 +1117,7 @@ export const CardDetailItemContent = styled.div`
     }
 `
 
-export const DueDateCompleteBox = styled.div`
+export const StyledDueDateCompleteBox = styled.div`
     border-radius: 2px;
     box-sizing: border-box;
     line-height: 18px;
@@ -1120,15 +1136,15 @@ export const DueDateCompleteBox = styled.div`
     }
 `
 
-export const CheckList = styled.div`
+export const StyledCheckList = styled.div`
     margin-bottom: 24px;
 `
 
-export const CheckListContent = styled.div`
+export const StyledCheckListContent = styled.div`
     min-height: 8px;
 `
 
-export const CheckListTitle = styled.div`
+export const StyledCheckListTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1140,13 +1156,13 @@ export const CheckListTitle = styled.div`
     }
 `
 
-export const H3 = styled.h3`
+export const StyledH3 = styled.h3`
     &.current { 
         cursor: pointer;
     }
 `
 
-export const Button = styled.a.attrs({ href: '/#' })`
+export const StyledButton = styled.a.attrs({ href: '/#' })`
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Noto Sans,Ubuntu,Droid Sans,Helvetica Neue,sans-serif;
     color: #172b4d;
     font-size: 14px;
@@ -1182,11 +1198,11 @@ export const Button = styled.a.attrs({ href: '/#' })`
     }
 `
 
-export const CheckListOptions = styled.div`
+export const StyledCheckListOptions = styled.div`
     float: right;
     margin: 0 2px 0 auto;
 
-    ${Button} {
+    ${StyledButton} {
         margin: 0 8px 0 0;
 
         &:last-child {
@@ -1195,7 +1211,7 @@ export const CheckListOptions = styled.div`
     }
 `
 
-export const CheckListTitleEdit = styled.div`
+export const StyledCheckListTitleEdit = styled.div`
     display: block;
     float: left;
     padding-bottom: 9px;
@@ -1204,10 +1220,10 @@ export const CheckListTitleEdit = styled.div`
     width: 100%;
 `
 
-export const CheckListWarnings = styled.p`
+export const StyledCheckListWarnings = styled.p`
 `
 
-export const CheckListItemOptions = styled.div`
+export const StyledCheckListItemOptions = styled.div`
     display: inline-flex;
     flex-direction: row;
     float: right;
@@ -1229,7 +1245,7 @@ export const CheckListItemOptions = styled.div`
     }
 `
 
-export const CheckListItem = styled.div`
+export const StyledCheckListItem = styled.div`
     clear: both;
     padding-left: 40px;
     position: relative;
@@ -1243,12 +1259,12 @@ export const CheckListItem = styled.div`
         background-color: rgba(9,30,66,.04);
     }
 
-    &:hover ${CheckListItemOptions} {
+    &:hover ${StyledCheckListItemOptions} {
         visibility: visible;
     }
 `
 
-export const CheckListItemCheckbox = styled.div`
+export const StyledCheckListItemCheckbox = styled.div`
     border-radius: 2px;
     box-sizing: border-box;
     line-height: 18px;
@@ -1281,13 +1297,13 @@ export const CheckListItemCheckbox = styled.div`
     }
 `
 
-export const CheckListItemDetails = styled.div`
+export const StyledCheckListItemDetails = styled.div`
     word-break: break-word;
     word-wrap: break-word;
     overflow-wrap: break-word;
 `
 
-export const CheckListItemRow = styled.div`
+export const StyledCheckListItemRow = styled.div`
     display: flex;
     flex-direction: row;
 
@@ -1296,13 +1312,13 @@ export const CheckListItemRow = styled.div`
     }
 `
 
-export const CheckListItemTitle = styled.div`
+export const StyledCheckListItemTitle = styled.div`
     padding: 6px 0;
     width: 100%;
     display: inline-flex;
 `
 
-export const CheckListItemTitleEdit = styled.div`
+export const StyledCheckListItemTitleEdit = styled.div`
     display: block;
     float: left;
     padding-bottom: 9px;
@@ -1311,7 +1327,7 @@ export const CheckListItemTitleEdit = styled.div`
     width: 100%;
 `
 
-export const CheckListItemTitleText = styled.span`
+export const StyledCheckListItemTitleText = styled.span`
     min-height: 20px;
     margin-bottom: 0;
     align-self: center;
@@ -1323,11 +1339,11 @@ export const CheckListItemTitleText = styled.span`
     }
 `
 
-export const CheckListAddItem = styled.div`
+export const StyledCheckListAddItem = styled.div`
     margin-left: 40px;
 `
 
-export const PopoverWrapper = styled.div`
+export const StyledPopoverWrapper = styled.div`
     background: #fff;
     border-radius: 3px;
     box-shadow: 0 8px 16px -4px rgba(9,30,66,.25), 0 0 0 1px rgba(9,30,66,.08);
@@ -1336,14 +1352,14 @@ export const PopoverWrapper = styled.div`
     z-index: 70;
 `
 
-export const PopoverHeader = styled.div`
+export const StyledPopoverHeader = styled.div`
     height: 40px;
     position: relative;
     margin-bottom: 8px;
     text-align: center;
 `
 
-export const PopoverContent = styled.div`
+export const StyledPopoverContent = styled.div`
     max-height: 868px;
     overflow-x: hidden;
     overflow-y: auto;
@@ -1351,7 +1367,7 @@ export const PopoverContent = styled.div`
 
 `
 
-export const PopoverTitle = styled.span`
+export const StyledPopoverTitle = styled.span`
     box-sizing: border-box;
     color: #5e6c84;
     display: block;
@@ -1366,7 +1382,7 @@ export const PopoverTitle = styled.span`
     z-index: 1;
 `
 
-export const PopoverSection = styled.div`
+export const StyledPopoverSection = styled.div`
     margin-top: 12px;
 
     h4 {
@@ -1380,21 +1396,21 @@ export const PopoverSection = styled.div`
     }
 `
 
-export const H4 = styled.h4`
+export const StyledH4 = styled.h4`
 `
 
-export const UList = styled.ul`
+export const StyledUList = styled.ul`
     &.edit-labels {
         margin-bottom: 8px;
     }
 `
 
-export const UListItem = styled.li`
+export const StyledUListItem = styled.li`
     padding-right: 36px;
     position: relative;
 `
 
-export const DatePicker = styled.div`
+export const StyledDatePicker = styled.div`
     &::after {
         clear: both;
         content: "";
@@ -1402,7 +1418,7 @@ export const DatePicker = styled.div`
     }
 `
 
-export const DatePickerSelect = styled.div`
+export const StyledDatePickerSelect = styled.div`
     box-sizing: border-box;
     float: left;
     width: 50%;
@@ -1412,7 +1428,7 @@ export const DatePickerSelect = styled.div`
     }
 `
 
-export const DatePickerLabel = styled.label`
+export const StyledDatePickerLabel = styled.label`
     font-weight: 700;
     color: #5e6c84;
     font-size: 12px;
@@ -1455,7 +1471,7 @@ export const DatePickerLabel = styled.label`
     }
 `
 
-export const Pickers = styled.div`
+export const StyledPickers = styled.div`
     display: block;
     background: #fff;
 
@@ -1548,7 +1564,7 @@ export const Pickers = styled.div`
         }
     }
 
-    ${Button} {
+    ${StyledButton} {
         float: left;
         display: block;
         position: absolute;
@@ -1575,7 +1591,7 @@ export const Pickers = styled.div`
     }
 `
 
-export const DatePickerCaption = styled.div`
+export const StyledDatePickerCaption = styled.div`
     color: #5e6c84;
     display: flex;
     justify-content: center;
@@ -1586,7 +1602,7 @@ export const DatePickerCaption = styled.div`
     right: 0;
 `
 
-export const DatePickerCaptionLabel = styled.label`
+export const StyledDatePickerCaptionLabel = styled.label`
     display: inline-block;
     position: relative;
     z-index: 9999;
@@ -1610,7 +1626,7 @@ export const DatePickerCaptionLabel = styled.label`
         color: #172b4d;
     }
 
-    ${Select} { 
+    ${StyledSelect} { 
         display: inline-block;
         cursor: pointer;
         position: absolute;
@@ -1622,4 +1638,14 @@ export const DatePickerCaptionLabel = styled.label`
         opacity: 0; 
         width: 100%;
     }
+`
+
+export const StyledItemAction = styled.a.attrs({ href: "/#" })`
+    cursor: pointer;
+    display: block;
+    font-weight: 400;
+    padding: 6px 12px;
+    position: relative;
+    margin: 0 -12px;
+    text-decoration: none;
 `

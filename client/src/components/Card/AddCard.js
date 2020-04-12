@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FiPlus } from 'react-icons/fi';
 import { MdClose } from 'react-icons/md';
 import { IconContext } from 'react-icons';
 
 import { actionCardCreate } from '../../actions';
 
-import { CardComposer, Icon, TextArea, Submit, Select, CardWrapper, FormGrid, ButtonLink, OptGroup, SelectLabel, SelectValue } from '../../styles';
+import { 
+    StyledCardComposer, StyledIcon, StyledTextArea, StyledSubmit, StyledSelect, StyledCardWrapper, StyledFormGrid, StyledButtonLink, 
+    StyledOptGroup, StyledSelectLabel, StyledSelectValue 
+} from '../../styles';
 
 
 class AddCard extends Component {
@@ -87,10 +88,10 @@ class AddCard extends Component {
         return (
             <div ref={(node) => { this.node = node; }}>
                 { this.state.clickedOn && 
-                    <CardComposer>
-                        <CardWrapper>
+                    <StyledCardComposer>
+                        <StyledCardWrapper>
                             <div className="card-details">
-                                <TextArea
+                                <StyledTextArea
                                     className="card-composer-textarea"
                                     dir="auto"
                                     onChange={(event) => this.setState({ value: event.target.value })}
@@ -99,46 +100,46 @@ class AddCard extends Component {
                                     value={this.state.value}
                                 />
                             </div>
-                        </CardWrapper>
-                        <FormGrid>
-                            <ButtonLink className="setting form-grid-child form-grid-child-full">
-                                <SelectLabel>Board</SelectLabel>
-                                <SelectValue>{this.props.boards.find((board) => board.id === this.state.selectedBoardId).name}</SelectValue>
-                                <Select
+                        </StyledCardWrapper>
+                        <StyledFormGrid>
+                            <StyledButtonLink className="setting form-grid-child form-grid-child-full">
+                                <StyledSelectLabel>Board</StyledSelectLabel>
+                                <StyledSelectValue>{this.props.boards.find((board) => board.id === this.state.selectedBoardId).name}</StyledSelectValue>
+                                <StyledSelect
                                     onChange={(event) => this.setState({ selectedBoardId: event.target.value })}
                                     value={this.state.selectedBoardId} 
                                 >
-                                    <OptGroup label="Boards">
+                                    <StyledOptGroup label="Boards">
                                         {this.renderBoardOptions()}
-                                    </OptGroup>
-                                </Select>
-                            </ButtonLink>
-                        </FormGrid>
-                        <FormGrid>
-                            <Submit
+                                    </StyledOptGroup>
+                                </StyledSelect>
+                            </StyledButtonLink>
+                        </StyledFormGrid>
+                        <StyledFormGrid>
+                            <StyledSubmit
                                 className="primary mod-compact"
                                 value="Add a card"
                                 onClick={this.handleComposer}
                             />
-                            <Icon 
+                            <StyledIcon 
                                 className="icon-lg" 
                                 onClick={(this.handleComposer)}
                             >
                                 <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
                                     <MdClose />
                                 </IconContext.Provider>
-                            </Icon>
-                        </FormGrid>
-                    </CardComposer>
+                            </StyledIcon>
+                        </StyledFormGrid>
+                    </StyledCardComposer>
                 }
                 { !this.state.clickedOn && 
-                    <CardComposer className="open" onClick={this.handleComposer}>
-                        <Icon className="icon-sm mr-2">
+                    <StyledCardComposer className="open" onClick={this.handleComposer}>
+                        <StyledIcon className="icon-sm mr-2">
                             <IconContext.Provider value={{ size: '16px', color: '#6b778c', }}>
                                 <FiPlus />
                             </IconContext.Provider>
-                        </Icon>
-                        { this.props.listCards.length == 0 && 
+                        </StyledIcon>
+                        { this.props.listCards.length === 0 && 
                             <React.Fragment>
                                 Add a card
                             </React.Fragment>
@@ -148,7 +149,7 @@ class AddCard extends Component {
                                 Add another card
                             </React.Fragment>
                         }
-                    </CardComposer>
+                    </StyledCardComposer>
                 }
             </div>
         );

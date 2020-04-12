@@ -83,6 +83,7 @@ class CardEditor extends Component {
         return (
             <Dialog
                 aria-labelledby="card-editor"
+                disableEnforceFocus={true}
                 open={this.props.isOpen}
                 onClick={this.handleClose}
             >

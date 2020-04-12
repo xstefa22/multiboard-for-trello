@@ -3,13 +3,12 @@ import { connect } from 'react-redux';
 import ReactDOM from "react-dom";
 import { bindActionCreators } from 'redux';
 import { Draggable } from 'react-beautiful-dnd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
+import { TiPencil } from 'react-icons/ti';
 
 import CardDetail from './CardDetail';
 import CardEditor from './CardEditor';
 
-import { CardWrapper, Icon, CardLabels, CardTitle, CardLabel, CardBadges } from '../../styles';
+import { StyledCardWrapper, StyledIcon, StyledCardLabels, StyledCardTitle, StyledCardLabel, StyledCardBadges } from '../../styles';
 
 
 class Card extends React.Component {
@@ -46,7 +45,7 @@ class Card extends React.Component {
     renderLabels = () => {
         return this.props.card.labels.map((label) => {
             return (
-                <CardLabel key={label.id} className={"label-" + (label.color) + " mod-card-front "} title={label.title} />
+                <StyledCardLabel key={label.id} className={"label-" + (label.color) + " mod-card-front "} title={label.title} />
             );
         });
     };
@@ -61,30 +60,30 @@ class Card extends React.Component {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                         >
-                            <CardWrapper ref={this.card}>
+                            <StyledCardWrapper ref={this.card}>
                                 <div className="card-operations">
-                                    <Icon 
+                                    <StyledIcon 
                                         className="icon-sm"
                                         onClick={this.handleCardEditor}
                                     >
-                                        <FontAwesomeIcon icon={faPencilAlt} />
-                                    </Icon>
+                                        <TiPencil />
+                                    </StyledIcon>
                                 </div>
                                 <div 
                                     className="card-details" 
                                     onClick={() => this.setState({ clickedOn: true })}
                                 >   
                                     { this.props.card.labels.length > 0 &&
-                                        <CardLabels>
+                                        <StyledCardLabels>
                                             {this.renderLabels()}
-                                        </CardLabels>
+                                        </StyledCardLabels>
                                     }
-                                    <CardTitle>{this.props.card.name}</CardTitle>
-                                    <CardBadges>
+                                    <StyledCardTitle>{this.props.card.name}</StyledCardTitle>
+                                    <StyledCardBadges>
                                         <span className="badge-board">{this.props.board.name}</span>
-                                    </CardBadges>
+                                    </StyledCardBadges>
                                 </div>
-                            </CardWrapper>
+                            </StyledCardWrapper>
                         </div>
                     )}
                 </Draggable>

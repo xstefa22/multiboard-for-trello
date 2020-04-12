@@ -16,7 +16,13 @@ import {
     WEBHOOK_MOVE_LIST_FROM_BOARD, WEBHOOK_MOVE_LIST_TO_BOARD, FETCH_BOARD_SUCCESS,
     WEBHOOK_REMOVE_LABEL_FROM_CARD, WEBHOOK_UPDATE_BOARD, WEBHOOK_UPDATE_CARD, WEBHOOK_UPDATE_LABEL, WEBHOOK_UPDATE_LIST,
     USER_RECEIVED, SET_SELECTED_BOARDS, FETCH_CHECKLISTS_FAILURE, FETCH_CHECKLISTS_SUCCESS,
-    CHECKLIST_UPDATE, CHECKLIST_UPDATE_SUCCESS, CHECKLIST_UPDATE_FAILURE,
+    CHECKLIST_UPDATE, CHECKLIST_UPDATE_SUCCESS, CHECKLIST_UPDATE_FAILURE, CHECKLIST_ITEM_UPDATE, CHECKLIST_ITEM_UPDATE_FAILURE, 
+    CHECKLIST_ITEM_UPDATE_SUCCESS, CHECKLIST_ITEM_ADD, CHECKLIST_ITEM_ADD_SUCCESS, CHECKLIST_ITEM_ADD_FAILURE,
+    CHECKLIST_REMOVE, CHECKLIST_REMOVE_FAILURE, CHECKLIST_REMOVE_SUCCESS, CHECKLIST_ITEM_REMOVE, CHECKLIST_ITEM_REMOVE_SUCCESS,
+    CHECKLIST_ITEM_REMOVE_FAILURE, CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE,
+    WEBHOOK_ADD_CHECKLIST_TO_CARD, WEBHOOK_CONVERT_CHECKITEM_TO_CARD, WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST,
+    WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
+    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS,
 } from './actionTypes';
 import { findPosition, sortCards } from '../api/index.js';
 
@@ -163,7 +169,7 @@ export const actionCheckAndCreateWebhook = _.once((webhooks, userData) => {
 
     return (dispatch) => {
         if (!exists) {
-            return trello.post('/1/webhooks', null, { params: { key, token, idModel: userData.id, description, callbackURL } });
+            return trello.post('/1/tokens/' + token + '/webhooks', { idModel: userData.id, description, callbackURL }, { params: { key } });
         }
     }
 });
@@ -237,8 +243,6 @@ export const actionCardUpdate = (card, data, updateLocally = false, dataToUpdate
             store.dispatch({ type: CARD_UPDATE, payload: { card, data: { ...data, ...dataToUpdateOnlyLocally } } });
         }
 
-        console.log(data);
-
         return trello.put('/1/cards/' + card.id, null, { params: { ...data, key, token } })
             .then((response) => dispatch({ type: CARD_UPDATE_SUCCESS, payload: { response } }))
             .catch((error) => dispatch({ type: CARD_UPDATE_FAILURE, payload: { card, error } }));
@@ -282,7 +286,7 @@ export const actionCardActionDelete = (card) => {
     return (dispatch) => {
         store.dispatch({ type: CARD_ACTION_DELETE, payload: { card } });
 
-        return trello.delete('/1/cards/' + card.id, null, { params: { key, token } })
+        return trello.delete('/1/cards/' + card.id, { params: { key, token } })
             .then((response) => dispatch({ type: CARD_ACTION_DELETE_SUCCESS, payload: { response } }))
             .catch((error) => dispatch({ type: CARD_ACTION_DELETE_FAILURE, payload: { error, card } }));
     };
@@ -410,17 +414,95 @@ export const actionLabelEdit = (label, data) => {
 //
 
 // Actions based around checklists
+export const actionChecklistCreate = (card, name, copyFrom) => {
+    const { key, token } = store.getState().authReducer;
+
+    const id = Math.random().toString(36).substr(2, 9);
+    return (dispatch) => {
+        store.dispatch({ type: CHECKLIST_CREATE, payload: { card, copyFrom, data: { id, name, idCard: card.id, idBoard: card.idBoard }  }});
+        const params = { key, token, name };
+        if (copyFrom !== 0){
+            params.idChecklistSource = copyFrom;
+        }
+
+        return trello.post('/1/cards/' + card.id + '/checklists', null, { params })
+            .then((response) => dispatch({ type: CHECKLIST_CREATE_SUCCESS, payload: { data: response.data, id } }))
+            .catch((error) => dispatch({ type: CHECKLIST_CREATE_FAILURE, payload: { error, card, id } }));
+    };
+};
+
+
 export const actionChecklistUpdate = (checklist, data) => {
     const { key, token } = store.getState().authReducer;
-    console.log(checklist);
-    console.log(data);
 
     return (dispatch) => {
         store.dispatch({ type: CHECKLIST_UPDATE, payload: { checklist, data } });
 
         return trello.put('/1/checklists/' + checklist.id, null, { params: { ...data, key, token } })
             .then((response) => dispatch({ type: CHECKLIST_UPDATE_SUCCESS, payload: { response } }))
-            .catch((error) => dispatch({ type: CHECKLIST_UPDATE_FAILURE, payload: { error, checklist }}));
+            .catch((error) => dispatch({ type: CHECKLIST_UPDATE_FAILURE, payload: { error, checklist } }));
+    }
+};
+
+export const actionChecklistItemUpdate = (checklist, item, data) => {
+    const { key, token } = store.getState().authReducer;
+
+    return (dispatch) => {
+        store.dispatch({ type: CHECKLIST_ITEM_UPDATE, payload: { checklist, item, data } });
+
+        return trello.put('/1/cards/' + checklist.idCard + '/checkItem/' + item.id, null, { params: { ...data, key, token } })
+            .then((response) => dispatch({ type: CHECKLIST_ITEM_UPDATE_SUCCESS, payload: { response } }))
+            .catch((error) => dispatch({ type: CHECKLIST_ITEM_UPDATE_FAILURE, payload: { error, checklist, item } }));
+    }
+};
+
+export const actionChecklistItemAdd = (checklist, name) => {
+    const { key, token } = store.getState().authReducer;
+
+    const id = Math.random().toString(36).substr(2, 9);
+    return (dispatch) => {
+        store.dispatch({ type: CHECKLIST_ITEM_ADD, payload: { data: { id, name, idChecklist: checklist.id } } });
+
+        return trello.post('/1/checklists/' + checklist.id + '/checkItems', null, { params: { name, key, token } })
+            .then((response) => dispatch({ type: CHECKLIST_ITEM_ADD_SUCCESS, payload: { data: response.data, id } }))
+            .catch((error) => dispatch({ type: CHECKLIST_ITEM_ADD_FAILURE, payload: { error, id, idChecklist: checklist.id } }));
+    };
+};
+
+export const actionChecklistRemove = (checklist) => {
+    const { key, token } = store.getState().authReducer;
+
+    return (dispatch) => {
+        store.dispatch({ type: CHECKLIST_REMOVE, payload: { checklist }});
+
+        return trello.delete('/1/checklists/' + checklist.id, { params: { key, token } })
+            .then((response) => dispatch({ type: CHECKLIST_REMOVE_SUCCESS, payload: { response } }))
+            .catch((error) => dispatch({ type: CHECKLIST_REMOVE_FAILURE, payload: { error, checklist } }));
+    };
+};
+
+export const actionChecklistItemConvert = (checklist, item) => {
+    const { cards, lists } = store.getState().dataReducer;
+
+    const card = cards.find((c) => c.id === checklist.idCard);
+    const list = lists.find((l) => l.id === card.idList);
+    
+    return (dispatch) => {
+        dispatch(actionChecklistItemRemove(checklist, item));
+
+        return dispatch(actionCardCreate(item.name, list.name, checklist.idBoard));
+    };
+};
+
+export const actionChecklistItemRemove = (checklist, item) => {
+    const { key, token } = store.getState().authReducer;
+
+    return (dispatch) => {
+        store.dispatch({ type: CHECKLIST_ITEM_REMOVE, payload: { checklist, item }});
+
+        return trello.delete('/1/checklists/' + checklist.id + '/checkItems/' + item.id, { params: { key, token } })
+            .then((response) => dispatch({ type: CHECKLIST_ITEM_REMOVE_SUCCESS, payload: { response } }))
+            .catch((error) => dispatch({ type: CHECKLIST_ITEM_REMOVE_FAILURE, payload: { error, checklist, item } }));
     }
 };
 //
@@ -449,6 +531,16 @@ export const actionUpdateReceived = (update) => {
     const data = update.action.data;
 
     switch (update.action.type) {
+        case "addChecklistToCard": {
+            return {
+                type: WEBHOOK_ADD_CHECKLIST_TO_CARD,
+                payload: {
+                    card: data.card,
+                    checklist: data.checklist,
+                    board: data.board,
+                }
+            }
+        }
         case "addLabelToCard": {
             return {
                 type: WEBHOOK_ADD_LABEL_TO_CARD,
@@ -459,8 +551,19 @@ export const actionUpdateReceived = (update) => {
                 }
             };
         }
+        case "convertToCardFromCheckItem": {
+            return {
+                type: WEBHOOK_CONVERT_CHECKITEM_TO_CARD,
+                payload: {
+                    card: data.card,
+                    checklist: data.checklist,
+                    board: data.board,
+                    sourceChecklist: data.checklistSource,
+                }
+            };
+        }
         case "copyBoard": {
-            // Same as creteeBoard
+            // Same as createBoard
             return {
                 type: WEBHOOK_COPY_BOARD,
                 payload: {
@@ -479,6 +582,16 @@ export const actionUpdateReceived = (update) => {
                     board: data.board,
                 }
             };
+        }
+        case "copyChecklist": {
+            const { card, checklist, board, checklistSource } = data;
+            const { key, token } = store.getState().authReducer;
+            
+            return (dispatch) => {
+                return trello.get('/1/checklists/' + checklist.id + '/checkItems', { params: { key, token } })
+                    .then((response) => dispatch({ type: FETCH_CHECKITEMS_SUCCESS, payload: { checklist, data: response.data } }))
+                    .catch((error) => dispatch({ type: FETCH_CHECKITEMS_FAILURE, payload: { error } }));
+            }
         }
         case "createLabel": {
             return {
@@ -532,6 +645,17 @@ export const actionUpdateReceived = (update) => {
                     card: data.card,
                 }
             };
+        }
+        case "deleteCheckItem": {
+            return {
+                type: WEBHOOK_DELETE_CHECKITEM,
+                payload: {
+                    board: data.board,
+                    card: data.card,
+                    checklist: data.checklist,
+                    checkItem: data.checkItem
+                }
+            }
         }
         case "deleteLabel": {
             return {
@@ -587,6 +711,16 @@ export const actionUpdateReceived = (update) => {
                 }
             };
         }
+        case "removeChecklistFromCard": {
+            return {
+                type: WEBHOOK_REMOVE_CHECKLIST_FROM_CARD,
+                payload: {
+                    card: data.card,
+                    board: data.board,
+                    checklist: data.checklist
+                }
+            }
+        }
         case "removeLabelFromCard": {
             return {
                 type: WEBHOOK_REMOVE_LABEL_FROM_CARD,
@@ -616,6 +750,40 @@ export const actionUpdateReceived = (update) => {
                     list: data.list,
                 }
             };
+        }
+        case "updateCheckItem": {
+            return {
+                type: WEBHOOK_UPDATE_CHECKITEM,
+                payload: {
+                    board: data.board,
+                    card: data.card,
+                    checklist: data.checklist,
+                    checkItem: data.checkItem,
+                    old: data.old
+                }
+            }
+        }
+        case "updateCheckItemStateOnCard": {
+            return {
+                type: WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD,
+                payload: {
+                    board: data.board,
+                    card: data.card,
+                    checklist: data.checklist,
+                    checkItem: data.checkItem 
+                }
+            }
+        }
+        case "updateChecklist": {
+            return {
+                type: WEBHOOK_UPDATE_CHECKLIST,
+                payload: {
+                    board: data.board,
+                    card: data.card,
+                    checklist: data.checklist,
+                    old: data.old
+                }
+            }
         }
         case "updateLabel": {
             return {

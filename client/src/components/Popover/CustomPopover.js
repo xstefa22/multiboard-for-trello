@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FaTimes, FaPencilAlt, FaCheck, FaChevronLeft } from 'react-icons/fa';
+import { FaTimes, FaCheck, FaChevronLeft } from 'react-icons/fa';
 import { TiPencil } from 'react-icons/ti';
 import { IconContext } from 'react-icons';
-import Popover from '@material-ui/core/Popover';
+import Popper from '@material-ui/core/Popper';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import { DateUtils } from 'react-day-picker';
 import DayPicker from 'react-day-picker';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -19,14 +19,15 @@ import DayPickerCaption from './DayPickerCaption';
 
 import {
     actionCardActionMove, actionCardActionCopy, actionCardActionArchive, actionLabelCreate,
-    actionLabelEdit, actionCardUpdate
+    actionLabelEdit, actionCardUpdate, actionChecklistRemove, actionChecklistItemConvert,
+    actionChecklistItemRemove, actionChecklistCreate,
 } from '../../actions';
 
 import {
-    PopoverWrapper, PopoverHeader, PopoverContent, PopoverTitle, PopoverSection,
-    H4, Icon, FormGrid, TextArea, Input, ButtonLink, Select, OptGroup, 
-    SelectLabel, SelectValue, UList, Button, Submit, CardLabel, UListItem, DatePickerLabel,
-    DatePicker, DatePickerSelect, Pickers
+    StyledPopoverWrapper, StyledPopoverHeader, StyledPopoverContent, StyledPopoverTitle, StyledPopoverSection,
+    StyledH4, StyledIcon, StyledFormGrid, StyledTextArea, StyledInput, StyledButtonLink, StyledSelect, StyledOptGroup, 
+    StyledSelectLabel, StyledSelectValue, StyledUList, StyledButton, StyledSubmit, StyledCardLabel, StyledUListItem, StyledDatePickerLabel,
+    StyledDatePicker, StyledDatePickerSelect, StyledPickers, StyledItemAction
 } from '../../styles';
 
 
@@ -42,6 +43,8 @@ class CustomPopover extends Component {
         this.handleEditLabel = this.handleEditLabel.bind(this);
         this.handleCardMove = this.handleCardMove.bind(this);
         this.handleCardCopy = this.handleCardCopy.bind(this);
+        this.handleOnChange = this.handleOnChange.bind(this);
+        this.getInputValue = this.getInputValue.bind(this);
 
         this.state = {
             selectedBoardId: this.props.data.idBoard,
@@ -49,7 +52,9 @@ class CustomPopover extends Component {
             selectedPos: this.props.index + 1,
             selectedLabels: [...this.props.data.labels],
             selectedLabelColor: null,
+            selectedCopyList: 0,
 
+            checklistNameValue: '',
             copyNameValue: '',
             labelNameValue: '',
 
@@ -128,7 +133,29 @@ class CustomPopover extends Component {
         this.props.actionCardActionCopy(this.props.data, this.state.copyNameValue, this.state.selectedBoardId, this.state.selectedListId, this.state.selectedPos, this.props.index);
     };
 
-   
+    handleCardChecklist = () => {
+        this.props.actionChecklistCreate(this.props.data, this.state.checklistNameValue, this.state.selectedCopyList);
+    };
+
+    handleChecklistRemove = () => {
+        this.props.actionChecklistRemove(this.props.checklist);
+    };
+
+    handleChecklistItemConvert = () => {
+        const { checklist, checklistItemId } = this.props;
+        const item = checklist.checkItems.find((item) => item.id === checklistItemId);
+
+        this.props.actionChecklistItemConvert(checklist, item);
+        this.props.onClose();
+    };
+
+    handleChecklistItemRemove = () => {
+        const { checklist, checklistItemId } = this.props;
+        const item = checklist.checkItems.find((item) => item.id === checklistItemId);
+
+        this.props.actionChecklistItemRemove(checklist, item);
+        this.props.onClose();
+    };
 
     handlePopOverClose = () => {
         const { action } = this.props;
@@ -172,6 +199,10 @@ class CustomPopover extends Component {
                 this.handleCardDueDate();
                 break;
             }
+            case 'checklist': {
+                this.handleCardChecklist();
+                break;
+            }
             default: break;
         }
     };
@@ -185,6 +216,11 @@ class CustomPopover extends Component {
                 this.props.onClose();
                 break;
             }
+            case 'checklistDelete': {
+                this.handleChecklistRemove();
+                this.props.onClose();
+                break;
+            }
             default: break;
         }
     };
@@ -192,6 +228,8 @@ class CustomPopover extends Component {
     mapActionToTitle = () => {
         return {
             checklist: 'Add Checklist',
+            checklistDelete: 'Delete ' + (this.props.checklist ? this.props.checklist.name : '') + '?',
+            checklistOptions: 'Item Actions',
             copy: 'Copy Card',
             dueDate: 'Change Due Date',
             labels: 'Labels',
@@ -204,7 +242,9 @@ class CustomPopover extends Component {
 
     mapActionToComponents = () => {
         return {
-            checklist: ['title', 'submit'],
+            checklist: ['title', 'copyChecklistFrom', 'submit'],
+            checklistDelete: ['checklistDeleteWarning', 'removeFull'],
+            checklistOptions: ['checklistOptions'],
             copy: ['title', 'select', 'textarea', 'submit'],
             dueDate: ['date', 'submit', 'remove'],
             labels: ['labels'],
@@ -222,6 +262,9 @@ class CustomPopover extends Component {
             }
             case 'colors': {
                 return 'Select a color';
+            }
+            case 'copyChecklistFrom': {
+                return 'Copy Items From...'
             }
             default: break;
         }
@@ -251,8 +294,17 @@ class CustomPopover extends Component {
         }[this.props.action];
     }
 
+    mapActionToRemove = () => {
+        return {
+            checklistDelete: 'Delete Checklist',
+            dueDate: 'Remove',
+            editLabel: 'Remove',
+            null: '',
+        }[this.props.action];
+    }
+
     getInputValue = () => {
-        const { copyNameValue, labelNameValue } = this.state;
+        const { copyNameValue, labelNameValue, checklistNameValue } = this.state;
         const { action } = this.props;
 
         switch (action) {
@@ -265,6 +317,10 @@ class CustomPopover extends Component {
                 return labelNameValue;
             }
 
+            case 'checklist': {
+                return checklistNameValue;
+            }
+
             default: break;
         }
 
@@ -274,7 +330,7 @@ class CustomPopover extends Component {
     handleOnChange = (e) => {
         const { action } = this.props;
         const value = e.target.value;
-        
+
         switch (action) {
             case 'copy': {
                 this.setState({ copyNameValue: value });
@@ -284,6 +340,11 @@ class CustomPopover extends Component {
             case 'addLabel':
             case 'editLabel': {
                 this.setState({ labelNameValue: value });
+                break;
+            }
+
+            case 'checklist': {
+                this.setState({ checklistNameValue: value });
                 break;
             }
 
@@ -352,15 +413,15 @@ class CustomPopover extends Component {
 
         return labels.map((label) => {
             return (
-                <UListItem key={label.id}>
-                    <Icon 
+                <StyledUListItem key={label.id}>
+                    <StyledIcon 
                         className="icon-sm label-edit-icon"
                         data-idlabel={label.id}
                         onClick={(e) => { this.setState({ selectedLabelColor: label.color, labelToEdit: label, labelNameValue: label.name }); this.props.setAction('editLabel'); }}
                     >
                         <TiPencil />
-                    </Icon>
-                    <CardLabel
+                    </StyledIcon>
+                    <StyledCardLabel
                         className={"mod-selectable label-" + label.color + ""}
                         data-idlabel={label.id}
                         data-color={label.color}
@@ -368,14 +429,14 @@ class CustomPopover extends Component {
                     >
                         {label.name}
                         { this.state.selectedLabels.map((l) => l.id).includes(label.id) && 
-                            <Icon className="icon-sm label-selected-icon">
+                            <StyledIcon className="icon-sm label-selected-icon">
                                 <IconContext.Provider value={{ color: '#fff', size: '12px' }}>
                                     <FaCheck />
                                 </IconContext.Provider>
-                            </Icon>
+                            </StyledIcon>
                         }
-                    </CardLabel>
-                </UListItem>
+                    </StyledCardLabel>
+                </StyledUListItem>
             );
         });
     };
@@ -386,7 +447,7 @@ class CustomPopover extends Component {
 
         return colors.map((color) => {
             return (
-                <CardLabel
+                <StyledCardLabel
                     className={"mod-edit-label mod-clickable label-" + color + ""}
                     data-color={color}
                     key={color}
@@ -394,15 +455,32 @@ class CustomPopover extends Component {
                 >
                     { this.state.selectedLabelColor === color &&
                         <IconContext.Provider value={{ color: '#fff', size: '12px' }}>
-                            <Icon className="icon-sm label-color-selected-icon">
+                            <StyledIcon className="icon-sm label-color-selected-icon">
                                 <FaCheck/>
-                            </Icon>
+                            </StyledIcon>
                         </IconContext.Provider>
                     }
-                </CardLabel>
+                </StyledCardLabel>
             );
         })
     };
+
+    renderCopyChecklistOptions = () => {
+        const lists = this.props.checklists.filter((l) => l.idBoard === this.props.data.idBoard);
+        const cardIds = lists.map((l) => l.idCard);
+        const cards = this.props.cards.filter((c) => cardIds.includes(c.id));
+
+        return cards.map((card) => {
+            const toRender = lists.filter((l) => l.idCard === card.id);
+            return (
+                <StyledOptGroup label={card.name} key={"copyFromCard-" + card.id}>
+                    { toRender.map((list) => {
+                        return <option value={list.id} key={"copyFromList-" + list.id}>{list.name}</option>;
+                    })}
+                </StyledOptGroup>
+            );
+        });
+    }
 
     render = () => {
         const componentsToRender = this.mapActionToComponents();
@@ -412,198 +490,229 @@ class CustomPopover extends Component {
         const FORMAT = 'yyyy/MM/dd';
 
         return (
-            <Popover
+            <Popper
                 anchorEl={this.props.anchorElement}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                onClose={this.handlePopOverClose}    
+                disablePortal={false}
                 open={Boolean(this.props.anchorElement)}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                }}
+                placement="bottom-start"
                 style={{
                     marginTop: '6px',
+                    zIndex: '9999',
                 }}
             >
-                <PopoverWrapper>
-                    <PopoverHeader>
-                        { (this.props.action === 'editLabel' || this.props.action === 'addLabel') && 
-                            <Icon
-                                className="icon-sm popover-back-icon"
-                                onClick={() => this.props.setAction('labels') }
+                <ClickAwayListener onClickAway={this.handlePopOverClose}>
+                    <StyledPopoverWrapper>
+                        <StyledPopoverHeader>
+                            { (this.props.action === 'editLabel' || this.props.action === 'addLabel') && 
+                                <StyledIcon
+                                    className="icon-sm popover-back-icon"
+                                    onClick={() => this.props.setAction('labels') }
+                                >
+                                    <FaChevronLeft/>
+                                </StyledIcon>
+                            }
+                            <StyledPopoverTitle>{this.mapActionToTitle()}</StyledPopoverTitle>
+                            <StyledIcon
+                                className="icon-sm popover-close-icon"
+                                onClick={this.handlePopOverClose}
                             >
-                                <FaChevronLeft/>
-                            </Icon>
-                        }
-                        <PopoverTitle>{this.mapActionToTitle()}</PopoverTitle>
-                        <Icon
-                            className="icon-sm popover-close-icon"
-                            onClick={this.handlePopOverClose}
-                        >
-                            <FaTimes/>
-                        </Icon>
-                    </PopoverHeader>
-                    <PopoverContent>
-                        <PopoverSection>
-                            { componentsToRender && componentsToRender.includes('title') && 
-                                <React.Fragment>
-                                    <H4>{this.mapActionToSectionTitle('title')}</H4>
-                                    {componentsToRender.includes('textarea') ?
-                                        <TextArea
-                                            name="name"
-                                            autoComplete="off"
-                                            maxLength="512"
-                                            value={this.getInputValue()}
-                                            onChange={(e) => this.handleOnChange(e)}
-                                        /> :
-                                        <Input
-                                            name="name"
-                                            className="popover-input"
-                                            value={this.getInputValue()}
-                                            onChange={(e) => this.handleOnChange(e)}
-                                        />
-                                    } 
-                                </React.Fragment>
-                            }
-                            { componentsToRender && componentsToRender.includes('date') &&
-                                <React.Fragment>
-                                    <DatePicker>
-                                        <DatePickerSelect>
-                                            <DatePickerLabel>
-                                                Date
-                                                <DayPickerInput
-                                                    value={this.state.selectedDay}
-                                                    onDayChange={this.handleDayChange}
-                                                    formatDate={this.formatDate}
-                                                    format={FORMAT}
-                                                    placeholder={`${dateFnsFormat(new Date(), FORMAT)}`}
-                                                    parseDate={this.parseDate}
-                                                    dayPickerProps={{
-                                                        selectedDays: this.state.selectedDay,
+                                <FaTimes/>
+                            </StyledIcon>
+                        </StyledPopoverHeader>
+                        <StyledPopoverContent>
+                            <StyledPopoverSection>
+                                { componentsToRender && componentsToRender.includes('title') && 
+                                    <React.Fragment>
+                                        <StyledH4>{this.mapActionToSectionTitle('title')}</StyledH4>
+                                        { componentsToRender.includes('textarea') ?
+                                            <StyledTextArea
+                                                autoComplete="off"
+                                                maxLength="512"
+                                                onChange={this.handleOnChange}
+                                                value={this.getInputValue()}
+                                            /> :
+                                            <StyledInput
+                                                className="popover-input"
+                                                onChange={this.handleOnChange}
+                                                value={this.getInputValue()}
+                                            />
+                                        } 
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('date') &&
+                                    <React.Fragment>
+                                        <StyledDatePicker>
+                                            <StyledDatePickerSelect>
+                                                <StyledDatePickerLabel>
+                                                    Date
+                                                    <DayPickerInput
+                                                        value={this.state.selectedDay}
+                                                        onDayChange={this.handleDayChange}
+                                                        formatDate={this.formatDate}
+                                                        format={FORMAT}
+                                                        placeholder={`${dateFnsFormat(new Date(), FORMAT)}`}
+                                                        parseDate={this.parseDate}
+                                                        dayPickerProps={{
+                                                            selectedDays: this.state.selectedDay,
+                                                        }}
+                                                    />
+                                                </StyledDatePickerLabel>
+                                            </StyledDatePickerSelect>
+                                            <StyledDatePickerSelect>
+                                                <StyledDatePickerLabel>
+                                                    Time
+                                                    <input 
+                                                        placeholder="Enter time"
+                                                        tabIndex="102"
+                                                    />
+                                                </StyledDatePickerLabel>
+                                            </StyledDatePickerSelect>
+                                        </StyledDatePicker>
+                                        <StyledPickers>
+                                            <DayPicker
+                                                month={this.state.selectedMonth}
+                                                fromMonth={fromMonth}
+                                                toMonth={toMonth}
+                                                navbarElement={<DayPickerNavbar />}
+                                                captionElement={({ date, localeUtils }) => (
+                                                    <DayPickerCaption
+                                                        date={date}
+                                                        localeUtils={localeUtils}
+                                                        onChange={this.handleYearMonthChange}
+                                                    />
+                                                )}
+                                                onDayClick={this.handleDayClick}
+                                                selectedDays={this.state.selectedDay}
+                                            />
+                                        </StyledPickers>
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('select') &&
+                                    <React.Fragment>
+                                        <StyledH4>{this.mapActionToSectionTitle('select')}</StyledH4>
+                                        <StyledFormGrid>
+                                            <StyledButtonLink className="setting form-grid-child form-grid-child-full">
+                                                <StyledSelectLabel>Board</StyledSelectLabel>
+                                                <StyledSelectValue>{this.props.boards.find((b) => b.id === this.state.selectedBoardId).name}</StyledSelectValue>
+                                                <StyledSelect
+                                                    onChange={(e) => this.setState({ selectedBoardId: e.target.value })}
+                                                    value={this.state.selectedBoardId} 
+                                                >
+                                                    <StyledOptGroup label="Boards">
+                                                        {this.renderBoardOptions()}
+                                                    </StyledOptGroup>
+                                                </StyledSelect>
+                                            </StyledButtonLink>
+                                        </StyledFormGrid>
+                                        <StyledFormGrid>
+                                            <StyledButtonLink className="setting form-grid-child form-grid-child-threequarters">
+                                                <StyledSelectLabel>List</StyledSelectLabel>
+                                                <StyledSelectValue>{this.props.boards.find((b) => b.id === this.state.selectedBoardId).name}</StyledSelectValue>
+                                                <StyledSelect
+                                                    onChange={(e) => {
+                                                        const cardsInList = this.props.cards.filter((l) => l.idList === e.target.value);
+                                                        this.setState({ selectedListId: e.target.value, selectedPos: cardsInList.length + 1 });
                                                     }}
-                                                />
-                                            </DatePickerLabel>
-                                        </DatePickerSelect>
-                                        <DatePickerSelect>
-                                            <DatePickerLabel>
-                                                Time
-                                                <input 
-                                                    placeholder="Enter time"
-                                                    tabIndex="102"
-                                                />
-                                            </DatePickerLabel>
-                                        </DatePickerSelect>
-                                    </DatePicker>
-                                    <Pickers>
-                                        <DayPicker
-                                            month={this.state.selectedMonth}
-                                            fromMonth={fromMonth}
-                                            toMonth={toMonth}
-                                            navbarElement={<DayPickerNavbar />}
-                                            captionElement={({ date, localeUtils }) => (
-                                                <DayPickerCaption
-                                                    date={date}
-                                                    localeUtils={localeUtils}
-                                                    onChange={this.handleYearMonthChange}
-                                                />
-                                            )}
-                                            onDayClick={this.handleDayClick}
-                                            selectedDays={this.state.selectedDay}
-                                        />
-                                    </Pickers>
-                                </React.Fragment>
-                            }
-                            { componentsToRender && componentsToRender.includes('select') &&
-                                <React.Fragment>
-                                    <H4>{this.mapActionToSectionTitle('select')}</H4>
-                                    <FormGrid>
-                                        <ButtonLink className="setting form-grid-child form-grid-child-full">
-                                            <SelectLabel>Board</SelectLabel>
-                                            <SelectValue>{this.props.boards.find((b) => b.id === this.state.selectedBoardId).name}</SelectValue>
-                                            <Select
-                                                onChange={(e) => this.setState({ selectedBoardId: e.target.value })}
-                                                value={this.state.selectedBoardId} 
-                                            >
-                                                <OptGroup label="Boards">
-                                                    {this.renderBoardOptions()}
-                                                </OptGroup>
-                                            </Select>
-                                        </ButtonLink>
-                                    </FormGrid>
-                                    <FormGrid>
-                                        <ButtonLink className="setting form-grid-child form-grid-child-threequarters">
-                                            <SelectLabel>List</SelectLabel>
-                                            <SelectValue>{this.props.boards.find((b) => b.id === this.state.selectedBoardId).name}</SelectValue>
-                                            <Select
-                                            onChange={(e) => {
-                                                const cardsInList = this.props.cards.filter((l) => l.idList === e.target.value);
-                                                this.setState({ selectedListId: e.target.value, selectedPos: cardsInList.length + 1 });
-                                            }}
-                                            value={this.state.selectedListId} 
+                                                    value={this.state.selectedListId} 
+                                                >
+                                                    <StyledOptGroup label="Lists">
+                                                        {this.renderListOptions()}
+                                                    </StyledOptGroup>
+                                                </StyledSelect>
+                                            </StyledButtonLink>
+                                            <StyledButtonLink className="setting form-grid-child">
+                                                <StyledSelectLabel>Position</StyledSelectLabel>
+                                                <StyledSelectValue>{this.state.selectedPos}</StyledSelectValue>
+                                                <StyledSelect
+                                                    onChange={(e) => this.setState({ selectedPos: e.target.value })}>
+                                                    value={this.state.selectedPos} 
+                                                >
+                                                    <StyledOptGroup label="Position">
+                                                        {this.renderPosOptions()}
+                                                    </StyledOptGroup>
+                                                </StyledSelect>
+                                            </StyledButtonLink>
+                                        </StyledFormGrid>
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('labels') &&
+                                    <React.Fragment>
+                                        <StyledH4>Labels</StyledH4>
+                                        <StyledUList className="edit-labels">
+                                            {this.renderLabelList()}
+                                        </StyledUList>
+                                        <StyledButton
+                                            className="full"
+                                            onClick={() => this.props.setAction('addLabel')}
                                         >
-                                            <OptGroup label="Lists">
-                                                {this.renderListOptions()}
-                                            </OptGroup>
-                                        </Select>
-                                        </ButtonLink>
-                                        <ButtonLink className="setting form-grid-child">
-                                            <SelectLabel>Position</SelectLabel>
-                                            <SelectValue>{this.state.selectedPos}</SelectValue>
-                                            <Select
-                                                onChange={(e) => this.setState({ selectedPos: e.target.value })}>
-                                                value={this.state.selectedPos} 
-                                            >
-                                                <OptGroup label="Position">
-                                                    {this.renderPosOptions()}
-                                                </OptGroup>
-                                            </Select>
-                                        </ButtonLink>
-                                    </FormGrid>
-                                </React.Fragment>
-                            }
-                            { componentsToRender && componentsToRender.includes('labels') &&
-                                <React.Fragment>
-                                    <H4>Labels</H4>
-                                    <UList className="edit-labels">
-                                        {this.renderLabelList()}
-                                    </UList>
-                                    <Button
-                                        className="full"
-                                        onClick={() => this.props.setAction('addLabel')}
-                                    >
-                                        Create a new label
-                                    </Button>
-                                </React.Fragment>
-                            }
-                            { componentsToRender && componentsToRender.includes('color') &&
-                                <React.Fragment>
-                                    <H4>Select a color</H4>
-                                    {this.renderLabelColors()}
-                                </React.Fragment>
-                            }
-                            { componentsToRender && componentsToRender.includes('submit') &&
-                                <React.Fragment>
-                                    <Submit
-                                        className="primary"
-                                        onClick={this.handlePopupSubmitClick}
-                                        value={this.mapActionToSubmit()}
-                                    />
-                                    { componentsToRender.includes('remove') &&
-                                        <Submit 
-                                            className="negate mod-float-right"
-                                            onClick={this.handlePopupRemoveClick}
-                                            value="Remove"
+                                            Create a new label
+                                        </StyledButton>
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('color') &&
+                                    <React.Fragment>
+                                        <StyledH4>Select a color</StyledH4>
+                                        {this.renderLabelColors()}
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('checklistDeleteWarning') &&
+                                    <p>Deleting a checklist is permanent and there is no way to get it back.</p>
+                                }
+                                { componentsToRender && componentsToRender.includes('checklistOptions') &&
+                                    <StyledUList>
+                                        <StyledUListItem onClick={this.handleChecklistItemConvert}>
+                                            <StyledItemAction>
+                                                Convert to Card
+                                            </StyledItemAction>
+                                        </StyledUListItem>
+                                        <StyledUListItem onClick={this.handleChecklistItemRemove}>
+                                            <StyledItemAction>
+                                                Delete
+                                            </StyledItemAction>
+                                        </StyledUListItem>
+                                    </StyledUList>
+                                }
+                                { componentsToRender && componentsToRender.includes('copyChecklistFrom') && this.props.data.idChecklists.length > 0 &&
+                                    <React.Fragment>
+                                        <StyledH4>Labels</StyledH4>
+                                        <StyledSelect
+                                            className="popover-select"
+                                            onChange={(e) => this.setState({ selectedCopyList: e.target.value })}
+                                            value={this.state.selectedCopyChecklist}
+                                        >
+                                            <option value="0">(none)</option>
+                                            {this.renderCopyChecklistOptions()}
+                                        </StyledSelect>
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('submit') &&
+                                    <React.Fragment>
+                                        <StyledSubmit
+                                            className="primary"
+                                            onClick={this.handlePopupSubmitClick}
+                                            value={this.mapActionToSubmit()}
                                         />
-                                    }
-                                </React.Fragment>
-                            }
-                        </PopoverSection>
-                    </PopoverContent>
-                </PopoverWrapper>
-            </Popover>
+                                        { componentsToRender.includes('remove') &&
+                                            <StyledSubmit 
+                                                className="negate mod-float-right"
+                                                onClick={this.handlePopupRemoveClick}
+                                                value={this.mapActionToRemove()}
+                                            />
+                                        }
+                                    </React.Fragment>
+                                }
+                                { componentsToRender && componentsToRender.includes('removeFull') &&
+                                    <StyledSubmit 
+                                        className="negate full mod-float-right"
+                                        onClick={this.handlePopupRemoveClick}
+                                        value={this.mapActionToRemove()}
+                                    />
+                                }
+                            </StyledPopoverSection>
+                        </StyledPopoverContent>
+                    </StyledPopoverWrapper>
+                </ClickAwayListener>
+            </Popper>
         )
     }
 }
@@ -612,6 +721,7 @@ const mapStateToProps = (state) => {
     return {
         labels: state.dataReducer.labels,
         cards: state.dataReducer.cards,
+        checklists: state.dataReducer.checklists,
         boards: state.dataReducer.boards,
         lists: state.dataReducer.lists,
         customLists: state.dataReducer.customLists,
@@ -620,7 +730,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
     actionCardActionArchive, actionCardActionMove, actionCardActionCopy,
-    actionLabelCreate, actionLabelEdit, actionCardUpdate
+    actionLabelCreate, actionLabelEdit, actionCardUpdate, actionChecklistRemove,
+    actionChecklistItemConvert, actionChecklistItemRemove, actionChecklistCreate,
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(CustomPopover);

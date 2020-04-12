@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Dialog from '@material-ui/core/Dialog';
 import { AiOutlineTag, AiOutlineUser, AiOutlineClockCircle } from 'react-icons/ai';
-import { FiCheckSquare, FiArchive, FiMinus, FiChevronDown, FiPlus, FiMoreHorizontal } from 'react-icons/fi';
+import { FiCheckSquare, FiArchive, FiMinus, FiChevronDown, FiPlus } from 'react-icons/fi';
 import { IoMdArrowForward, IoMdRefresh, IoIosCheckmark } from 'react-icons/io';
 import { MdContentCopy, MdClose } from 'react-icons/md';
 import { IconContext } from "react-icons";
@@ -11,23 +11,21 @@ import dateFnsFormat from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
 
 import Popover from '../Popover/CustomPopover';
- 
+import Checklist from './Custom/Checklist';
+
 import {
     actionCardActionMove, actionCardActionCopy, actionCardActionArchive, actionLabelCreate,
-    actionLabelEdit, actionCardUpdate, actionChecklistUpdate,
+    actionLabelEdit, actionCardUpdate, actionChecklistUpdate, actionChecklistItemUpdate, 
+    actionCardActionDelete,
 } from '../../actions';
 
 import { 
-    DialogOverlay, DialogWrapper, DialogHeader, DialogContent, DialogTitle,
-    DialogHeaderInlineContent, DialogBadges, DialogDescription, DialogModule, DialogSidebar,    
-    DialogSidebarSection, ButtonLink, Icon, DialogModuleTitle, Description,
-    TextArea, Submit, Text, EditControls, DialogArchiveBanner, H2,
-    CardDetailItem, CardDetailItemHeader, CardDetailItemAddButton, CardLabel,
-    DueDateCompleteBox, CardDetailItemContent, CheckList, CheckListContent,
-    H3, CheckListOptions, CheckListTitle, CheckListTitleEdit, CheckListWarnings,
-    CheckListItem, CheckListItemCheckbox, CheckListItemRow, CheckListItemTitleEdit,
-    CheckListItemTitle, CheckListItemDetails, CheckListItemTitleText, CheckListItemOptions,
-    Button, CheckListAddItem, 
+    StyledDialogOverlay, StyledDialogWrapper, StyledDialogHeader, StyledDialogContent, StyledDialogTitle,
+    StyledDialogHeaderInlineContent, StyledDialogBadges, StyledDialogDescription, StyledDialogModule, StyledDialogSidebar,    
+    StyledDialogSidebarSection, StyledButtonLink, StyledIcon, StyledDialogModuleTitle, StyledDescription,
+    StyledTextArea, StyledSubmit, StyledText, StyledEditControls, StyledDialogArchiveBanner, StyledH2,
+    StyledCardDetailItem, StyledCardDetailItemHeader, StyledCardDetailItemAddButton, StyledCardLabel,
+    StyledDueDateCompleteBox, StyledCardDetailItemContent,
 } from '../../styles';
 
 
@@ -44,8 +42,6 @@ class CardDetail extends Component {
         this.handleCardCustomization = this.handleCardCustomization.bind(this);
         this.handleCardRemove = this.handleCardRemove.bind(this);
         this.handleClick = this.handleClick.bind(this);
-        this.handleChecklistItemClick = this.handleChecklistItemClick.bind(this);
-        this.handleChecklistItemEdit = this.handleChecklistItemEdit.bind(this);
         this.setAction = this.setAction.bind(this);
         this.handlePopOverClose = this.handlePopOverClose.bind(this);
         this.handleDueComplete = this.handleDueComplete.bind(this);
@@ -61,18 +57,10 @@ class CardDetail extends Component {
 
             dueComplete: this.props.data.dueComplete,
             idChecklists: this.props.data.idChecklists,
-
-            checklistToEdit: {},
-            checklistToEditIndex: null,
-            clickedOnEditChecklistTitle: false,
-            checklistItemToEdit: {},
-            clickedOnEditChecklistItemTitle: false,
         };
 
         this.cardNameEditable = React.createRef();
         this.cardDescEditable = React.createRef();
-        this.checklistTitleEditable = [];
-        this.checklistItemTitleEditable = [];
     }
 
     // Setting focus on textarea when editing card's name or description
@@ -82,9 +70,6 @@ class CardDetail extends Component {
         }
         if (!prevState.clickedOnEditCardDesc && this.state.clickedOnEditCardDesc) {
             this.cardDescEditable.current.focus();
-        }
-        if (!prevState.clickedOnEditChecklistTitle && this.state.clickedOnEditChecklistTitle) {
-            this.checklistTitleEditable[this.state.checklistToEditIndex].focus();
         }
     };
 
@@ -113,12 +98,6 @@ class CardDetail extends Component {
                 }));
                 break;
             }
-            case 'editChecklistTitle': {
-                this.setState(prevState => ({
-                    clickedOnEditChecklistTitle: !prevState.clickedOnEditChecklistTitle
-                }));
-                break;
-            }
 
             default: break;
         }
@@ -132,11 +111,10 @@ class CardDetail extends Component {
 
     // Handles hiding popup if clicked outside of popup
     handleOutsideClick = (event) => {
-        const { checklistToEditIndex } = this.state;
+        const { checklistToEditIndex, checklistItemToEditIndex } = this.state;
 
         if ((this.cardNameEditable && this.cardNameEditable.current && this.cardNameEditable.current.contains(event.target)) || 
-            (this.cardDescEditable && this.cardDescEditable.current && this.cardDescEditable.current.contains(event.target)) ||
-            (this.checklistTitleEditable[checklistToEditIndex] && this.checklistTitleEditable[checklistToEditIndex].contains(event.target))) {
+            (this.cardDescEditable && this.cardDescEditable.current && this.cardDescEditable.current.contains(event.target))) {
             return;
         }
         
@@ -152,16 +130,6 @@ class CardDetail extends Component {
                 this.handleEditCardDesc();
             }
             this.handleComposer('editCardDesc', true);
-        }
-
-        if (this.state.clickedOnEditChecklistTitle){
-            const { checklistToEdit } = this.state;
-            const origin = this.props.checklists.find((c) => c.id === checklistToEdit.id);
-            if (origin.name !== checklistToEdit.name){
-                this.handleEditChecklistTitle();
-            }
-            this.handleComposer('editChecklistTitle', true);
-            this.setState({ checklistToEdit: null, checklistToEditIndex: null })
         }
 
         this.handleComposer(null, true);
@@ -190,6 +158,7 @@ class CardDetail extends Component {
     };
 
     handleCardRemove = (event) => {
+        this.props.actionCardActionDelete();
     };
 
     handleClick = (event, action) => {
@@ -200,13 +169,6 @@ class CardDetail extends Component {
         }
 
         this.setState({ anchorElement, action });
-    };
-
-    handleEditChecklistTitle = () => {
-        const { checklistToEdit } = this.state; 
-        const checklist = this.props.checklists.find((c) => c.id === checklistToEdit.id);
-
-        this.props.actionChecklistUpdate(checklist, { name: checklistToEdit.name });
     };
 
     setAction = (action) => {
@@ -233,24 +195,17 @@ class CardDetail extends Component {
         this.props.actionCardUpdate(this.props.data, { dueComplete: !this.state.dueComplete }, true);
     };
 
-
-    handleChecklistItemClick = (event, item) => {
-    };
-
-    handleChecklistItemEdit = (event, item) => {
-    };
-
     renderCardLabels = () => {
         return this.props.data.labels.map((label, index) => {
             return (
-                <CardLabel 
+                <StyledCardLabel 
                     className={"mod-card-detail mod-clickable label-" + label.color} 
                     key={label.id} 
                     onClick={(e) => this.handleClick(e, 'labels')}
                     title={label.name} 
                 >
                     {label.name}
-                </CardLabel>
+                </StyledCardLabel>
             );
         });
     };
@@ -258,239 +213,89 @@ class CardDetail extends Component {
     renderCardChecklists = () => {
         const checklists = this.props.checklists.filter((l) => l.idCard === this.props.data.id);
 
-        return checklists.map((checklist, index, ) => {
+        return checklists.map((checklist, index) => {
             return (
-                <CheckList key={checklist.id}>
-                    <DialogModuleTitle className="ml-40">
-                        <Icon className="icon-lg icon-checklist">
-                            <IconContext.Provider value={{ size: "20px"}}>
-                                <FiCheckSquare/>
-                            </IconContext.Provider>
-                        </Icon>
-                        <CheckListTitle>
-                            { !this.state.clickedOnEditChecklistTitle &&
-                                <React.Fragment>
-                                    <H3 
-                                        className="current"
-                                        onClick={() => {
-                                            this.setState({ checklistToEdit: { ...checklist }, checklistToEditIndex: index })
-                                            this.handleComposer('editChecklistTitle');
-                                        }}
-                                    >
-                                        {checklist.name}
-                                    </H3>
-                                    <CheckListOptions>
-                                        { this.state.completedItemHidden && 
-                                            <Button className="subtle">
-                                                Show completedItems
-                                            </Button>
-                                        ||
-                                            <Button className="subtle">
-                                                Hide completed items
-                                            </Button>
-                                        }
-                                        <Button className="subtle">
-                                            Delete
-                                        </Button>
-                                    </CheckListOptions>
-                                    <CheckListWarnings></CheckListWarnings>
-                                </React.Fragment>
-                            ||
-                                <CheckListTitleEdit>
-                                    <TextArea
-                                        className="checklist-title-text"
-                                        onChange={(event) => { 
-                                            let { checklistToEdit } = this.state;
-                                            checklistToEdit.name = event.target.value;
-                                            this.setState({ checklistToEdit });
-                                        }}
-                                        ref={(ref) => this.checklistTitleEditable.push(ref)}
-                                        value={this.state.checklistToEdit.name}
-                                    />
-                                    <EditControls>
-                                        <Submit
-                                            className="primary mod-submit-edit"
-                                            value="Save"
-                                        />
-                                        <Icon 
-                                            className="icon-lg" 
-                                            onClick={() => this.handleComposer('editChecklistTitle')}
-                                        >
-                                            <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
-                                                <MdClose />
-                                            </IconContext.Provider>
-                                        </Icon>
-                                    </EditControls>    
-                                </CheckListTitleEdit>
-                            }
-                        </CheckListTitle>
-                    </DialogModuleTitle>
-                    <CheckListContent className="ui-sortable">
-                        {this.renderCardChecklistsItems(checklist.checkItems, index)}
-                    </CheckListContent>
-                    <CheckListAddItem>
-                        { !this.state.checklistNewItemEditing &&
-                            <Button className="subtle">
-                                Add item
-                            </Button>
-                        ||
-                            <React.Fragment>
-                                <TextArea
-                                    className="checklist-new-item-text"
-                                    onChange={(event) => this.setState({ newChecklistItemValue: event.target.value })}
-                                    placeholder="Add an item"
-                                    ref={this.newChecklistItemEditable}
-                                    value={this.state.newChecklistItemValue}
-                                />
-                                <EditControls>
-                                    <Submit
-                                        className="primary mod-submit-edit"
-                                        value="Add"
-                                    />
-                                    <Icon 
-                                        className="icon-lg" 
-                                        onClick={() => this.handleComposer('editNewChecklistItem')}
-                                    >
-                                        <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
-                                            <MdClose />
-                                        </IconContext.Provider>
-                                    </Icon>
-                                </EditControls>
-                            </React.Fragment>
-                        }
-                    </CheckListAddItem>
-                </CheckList>
+                <Checklist
+                    card={this.props.data}
+                    data={checklist}
+                    index={index}
+                    key={checklist.id}
+                />
             );
         })
     };
 
-    renderCardChecklistsItems = (items, checkListIndex) => {
-        return items.map((item, index) => {
-            return (
-                <CheckListItem key={item.id}>
-                    <CheckListItemCheckbox 
-                        className={(item.state === "complete" ? 'checked' : '')}
-                        onClick={(e) => this.handleChecklistItemClick(e, item)}
-                    >
-                        { item.state === "complete" &&
-                            <IconContext.Provider value={{ color: "white", size: "28px"}}>
-                                <Icon className="icon-sm checklist-checkbox-icon">
-                                    <IoIosCheckmark/>
-                                </Icon>
-                            </IconContext.Provider>
-                        }
-                    </CheckListItemCheckbox>
-                    <CheckListItemDetails>
-                        <CheckListItemRow className="current">
-                            { !this.state.clickedOnEditChecklistItemTitle && 
-                                <CheckListItemTitle>
-                                    <CheckListItemTitleText className={(item.state === "complete" ? "complete" : "")}>{item.name}</CheckListItemTitleText>
-                                    <CheckListItemOptions>
-                                        <div className="checklist-item-menu">
-                                            <Icon className="icon-sm">
-                                                <FiMoreHorizontal/>
-                                            </Icon>
-                                        </div>
-                                    </CheckListItemOptions>
-                                </CheckListItemTitle>
-                            ||
-                                <CheckListItemTitleEdit>
-                                    <TextArea
-                                        className="checklist-item-title-text"
-                                        onChange={(event) => this.setState({ checklistItemTitleValue: event.target.value })}
-                                        ref={(ref) => this.checkListItemTitleEditable[checkListIndex].push(ref)}
-                                        value={this.state.checklistItemTitleValue }
-                                    />
-                                    <EditControls>
-                                        <Submit
-                                            className="primary mod-submit-edit"
-                                            value="Save"
-                                        />
-                                        <Icon 
-                                            className="icon-lg" 
-                                            onClick={() => this.handleComposer('editCheckListItemTitle')}
-                                        >
-                                            <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
-                                                <MdClose />
-                                            </IconContext.Provider>
-                                        </Icon>
-                                    </EditControls> 
-                                </CheckListItemTitleEdit>
-                            }
-                        </CheckListItemRow>
-                    </CheckListItemDetails>
-                </CheckListItem>
-            );
-        });
-    };
-
-
     render = () => {
         return (
-            <Dialog aria-labelledby="card-detail" open={this.props.isOpen} onClick={this.handleClose}>
-                <DialogOverlay className="window-overlay">
-                    <DialogWrapper>
+            <Dialog 
+                aria-labelledby="card-detail" 
+                disableEnforceFocus={true}
+                open={this.props.isOpen} 
+                onClick={this.handleClose}
+            >
+                <StyledDialogOverlay className="window-overlay">
+                    <StyledDialogWrapper>
                         { this.state.clickedOnArchive && 
-                            <DialogArchiveBanner>
-                                <Text className="archive">
+                            <StyledDialogArchiveBanner>
+                                <StyledText className="archive">
                                     This card is archived.
-                                </Text>
-                            </DialogArchiveBanner>
+                                </StyledText>
+                            </StyledDialogArchiveBanner>
                         }
-                        <DialogHeader>
-                            <DialogTitle>
+                        <StyledDialogHeader>
+                            <StyledDialogTitle>
                                 { !this.state.clickedOnEditCardName &&
-                                    <H2
+                                    <StyledH2
                                         className="detail-title"
                                         onClick={() => this.handleComposer('editCardName')}
                                     >
                                         {this.state.cardNameValue}
-                                    </H2>
+                                    </StyledH2>
                                 ||
-                                    <TextArea
+                                    <StyledTextArea
                                         className="is-editing mod-card-back-title"
                                         onChange={(event) => this.setState({ cardNameValue: event.target.value })}
                                         ref={this.cardNameEditable}
                                         value={this.state.cardNameValue}
                                     />
                                 }
-                            </DialogTitle>
-                            <DialogHeaderInlineContent>
+                            </StyledDialogTitle>
+                            <StyledDialogHeaderInlineContent>
                                 in list <span>{this.props.listName}</span>
-                            </DialogHeaderInlineContent>
-                        </DialogHeader>
-                        <DialogContent>
-                            <DialogBadges>
+                            </StyledDialogHeaderInlineContent>
+                        </StyledDialogHeader>
+                        <StyledDialogContent>
+                            <StyledDialogBadges>
                             { this.props.data.labels.length > 0 &&
-                                <CardDetailItem>
-                                    <CardDetailItemHeader>Labels</CardDetailItemHeader>
+                                <StyledCardDetailItem>
+                                    <StyledCardDetailItemHeader>Labels</StyledCardDetailItemHeader>
                                     {this.renderCardLabels()}
-                                    <CardDetailItemAddButton onClick={(e) => this.handleClick(e, 'labels')}>
-                                        <Icon className="icon-sm">
+                                    <StyledCardDetailItemAddButton onClick={(e) => this.handleClick(e, 'labels')}>
+                                        <StyledIcon className="icon-sm">
                                             <IconContext.Provider value={{ color: '#42526e', size: '24px' }}>
                                                 <FiPlus/>
                                             </IconContext.Provider>
-                                        </Icon>
-                                    </CardDetailItemAddButton>
-                                </CardDetailItem>
+                                        </StyledIcon>
+                                    </StyledCardDetailItemAddButton>
+                                </StyledCardDetailItem>
                             }
                             { this.props.data.due &&
-                                <CardDetailItem>
-                                    <CardDetailItemHeader>Due Date</CardDetailItemHeader>
-                                    <CardDetailItemContent className="due-date-badge is-clickable">
-                                        <DueDateCompleteBox
+                                <StyledCardDetailItem>
+                                    <StyledCardDetailItemHeader>Due Date</StyledCardDetailItemHeader>
+                                    <StyledCardDetailItemContent className="due-date-badge is-clickable">
+                                        <StyledDueDateCompleteBox
                                             onClick={this.handleDueComplete}
                                             role="button"
                                         >
                                             { this.state.dueComplete &&
-                                                <Icon className="icon-sm due-date-complete-icon">
+                                                <StyledIcon className="icon-sm due-date-complete-icon">
                                                     <IconContext.Provider value={{ color: "white", size: "24px"}}>
                                                         <IoIosCheckmark />
                                                     </IconContext.Provider>
-                                                </Icon>
+                                                </StyledIcon>
                                             }
-                                        </DueDateCompleteBox>
-                                        <ButtonLink
+                                        </StyledDueDateCompleteBox>
+                                        <StyledButtonLink
                                             className="due-date-button"
                                             onClick={(e) => this.handleClick(e, 'dueDate')}
                                         >
@@ -498,112 +303,112 @@ class CardDetail extends Component {
                                             { this.state.dueComplete &&
                                                 <span className="status-lozenge">complete</span>
                                             }
-                                            <Icon className="icon-sm due-date-arrow-icon">
+                                            <StyledIcon className="icon-sm due-date-arrow-icon">
                                                 <FiChevronDown/>
-                                            </Icon>
-                                        </ButtonLink>
-                                    </CardDetailItemContent>
-                                </CardDetailItem>
+                                            </StyledIcon>
+                                        </StyledButtonLink>
+                                    </StyledCardDetailItemContent>
+                                </StyledCardDetailItem>
                             }
-                            </DialogBadges>
-                            <DialogDescription>
-                                <DialogModule>
-                                    <DialogModuleTitle>
+                            </StyledDialogBadges>
+                            <StyledDialogDescription>
+                                <StyledDialogModule>
+                                    <StyledDialogModuleTitle>
                                         <h3>Description</h3>
-                                    </DialogModuleTitle>
-                                    <Description>
+                                    </StyledDialogModuleTitle>
+                                    <StyledDescription>
                                         { !this.state.clickedOnEditCardDesc && 
-                                            <Text
+                                            <StyledText
                                                 className={"fake-text-area " + (this.props.data.desc ? '' : 'empty') + ""}
                                                 onClick={() => this.handleComposer('editCardDesc')}
                                             >
                                                 {this.props.data.desc ? this.props.data.desc : 'Add a more detailed description...'}
-                                            </Text>
+                                            </StyledText>
                                         ||
                                             <React.Fragment>
-                                                <TextArea
+                                                <StyledTextArea
                                                     className="is-editing"
                                                     onChange={(event) => this.setState({ cardDescValue: event.target.value })}
                                                     placeholder="Add a more detailed description..."
                                                     ref={this.cardDescEditable}
                                                     value={this.state.cardDescValue}
                                                 />
-                                                <EditControls>
-                                                    <Submit
+                                                <StyledEditControls>
+                                                    <StyledSubmit
                                                         className="primary mod-submit-edit"
                                                         value="Save"
                                                     />
-                                                    <Icon 
+                                                    <StyledIcon 
                                                         className="icon-lg" 
                                                         onClick={() => this.handleComposer('editCardDesc')}
                                                     >
                                                         <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
                                                             <MdClose />
                                                         </IconContext.Provider>
-                                                    </Icon>
-                                                </EditControls>
+                                                    </StyledIcon>
+                                                </StyledEditControls>
                                             </React.Fragment>
                                         }
-                                    </Description>
-                                </DialogModule>
-                            </DialogDescription>
-                            { this.props.data.idChecklists.length > 0 &&
-                                <DialogModule className="no-ml ui-sortable">
+                                    </StyledDescription>
+                                </StyledDialogModule>
+                            </StyledDialogDescription>
+                            { this.props.checklists.filter((l) => l.idCard === this.props.data.id).length > 0 &&
+                                <StyledDialogModule className="no-ml ui-sortable">
                                     {this.renderCardChecklists()}
-                                </DialogModule>
+                                </StyledDialogModule>
                             }
-                        </DialogContent>
-                        <DialogSidebar>
-                            <DialogSidebarSection>
+                        </StyledDialogContent>
+                        <StyledDialogSidebar>
+                            <StyledDialogSidebarSection>
                                 <h3>Add to card</h3>
-                                <ButtonLink>
-                                    <Icon className="icon-sm"><AiOutlineUser/></Icon>
+                                <StyledButtonLink>
+                                    <StyledIcon className="icon-sm"><AiOutlineUser/></StyledIcon>
                                     <span>Members</span>
-                                </ButtonLink>
-                                <ButtonLink onClick={(e) => this.handleClick(e, 'labels')}>
-                                    <Icon className="icon-sm"><AiOutlineTag/></Icon>
+                                </StyledButtonLink>
+                                <StyledButtonLink onClick={(e) => this.handleClick(e, 'labels')}>
+                                    <StyledIcon className="icon-sm"><AiOutlineTag/></StyledIcon>
                                     <span>Labels</span>
-                                </ButtonLink>
-                                <ButtonLink onClick={(e) => this.handleClick(e, 'checklist')}>
-                                    <Icon className="icon-sm"><FiCheckSquare/></Icon>
+                                </StyledButtonLink>
+                                <StyledButtonLink onClick={(e) => this.handleClick(e, 'checklist')}>
+                                    <StyledIcon className="icon-sm"><FiCheckSquare/></StyledIcon>
                                     <span>Checklist</span>
-                                </ButtonLink>
-                                <ButtonLink onClick={(e) => this.handleClick(e, 'dueDate')}>
-                                    <Icon className="icon-sm"><AiOutlineClockCircle/></Icon>
+                                </StyledButtonLink>
+                                <StyledButtonLink onClick={(e) => this.handleClick(e, 'dueDate')}>
+                                    <StyledIcon className="icon-sm"><AiOutlineClockCircle/></StyledIcon>
                                     <span>Due Date</span>
-                                </ButtonLink>
-                            </DialogSidebarSection>
-                            <DialogSidebarSection>
+                                </StyledButtonLink>
+                            </StyledDialogSidebarSection>
+                            <StyledDialogSidebarSection>
                                 <h3>Actions</h3>
-                                <ButtonLink onClick={(e) => this.handleClick(e, 'move')}>
-                                    <Icon className="icon-sm"><IoMdArrowForward/></Icon>
+                                <StyledButtonLink onClick={(e) => this.handleClick(e, 'move')}>
+                                    <StyledIcon className="icon-sm"><IoMdArrowForward/></StyledIcon>
                                     <span>Move</span>
-                                </ButtonLink>
-                                <ButtonLink onClick={(e) => this.handleClick(e, 'copy')}>
-                                    <Icon className="icon-sm"><MdContentCopy/></Icon>
+                                </StyledButtonLink>
+                                <StyledButtonLink onClick={(e) => this.handleClick(e, 'copy')}>
+                                    <StyledIcon className="icon-sm"><MdContentCopy/></StyledIcon>
                                     <span>Copy</span>
-                                </ButtonLink>
+                                </StyledButtonLink>
                                 { !this.state.clickedOnArchive &&
-                                    <ButtonLink onClick={() => this.setState({ clickedOnArchive: true })}>
-                                        <Icon className="icon-sm"><FiArchive/></Icon>
+                                    <StyledButtonLink onClick={() => this.setState({ clickedOnArchive: true })}>
+                                        <StyledIcon className="icon-sm"><FiArchive/></StyledIcon>
                                         <span>Archive</span>
-                                    </ButtonLink>
+                                    </StyledButtonLink>
                                 ||
                                     <React.Fragment>
-                                        <ButtonLink onClick={() => this.setState({ clickedOnArchive: false })}>
-                                            <Icon className="icon-sm"><IoMdRefresh/></Icon>
+                                        <StyledButtonLink onClick={() => this.setState({ clickedOnArchive: false })}>
+                                            <StyledIcon className="icon-sm"><IoMdRefresh/></StyledIcon>
                                             <span>Send to board</span>
-                                        </ButtonLink>
-                                        <ButtonLink className="negate" onClick={this.handleCardRemove}>
-                                            <Icon className="icon-sm"><FiMinus color="white"/></Icon>
+                                        </StyledButtonLink>
+                                        <StyledButtonLink className="negate" onClick={this.handleCardRemove}>
+                                            <StyledIcon className="icon-sm"><FiMinus color="white"/></StyledIcon>
                                             <span>Delete</span>
-                                        </ButtonLink>
+                                        </StyledButtonLink>
                                     </React.Fragment>
                                 }
-                            </DialogSidebarSection>
-                        </DialogSidebar>
-                    </DialogWrapper>
-                </DialogOverlay>
+                            </StyledDialogSidebarSection>
+                        </StyledDialogSidebar>
+                    </StyledDialogWrapper>
+                </StyledDialogOverlay>
                 <Popover
                     action={this.state.action}
                     anchorElement={this.state.anchorElement}
@@ -631,6 +436,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => bindActionCreators({
     actionCardActionArchive, actionCardActionMove, actionCardActionCopy,
     actionLabelCreate, actionLabelEdit, actionCardUpdate, actionChecklistUpdate,
+    actionChecklistItemUpdate, actionCardActionDelete, 
 }, dispatch)
+
 
 export default connect(mapStateToProps, mapDispatchToProps)(CardDetail);

@@ -12,6 +12,13 @@ import {
     WEBHOOK_MOVE_LIST_FROM_BOARD, WEBHOOK_MOVE_LIST_TO_BOARD, WEBHOOK_REMOVE_LABEL_FROM_CARD, WEBHOOK_UPDATE_BOARD,
     WEBHOOK_UPDATE_CARD, WEBHOOK_UPDATE_LABEL, WEBHOOK_UPDATE_LIST, WEBHOOK_CREATE_LIST, USER_RECEIVED, SET_SELECTED_BOARDS,
     FETCH_CHECKLISTS_SUCCESS, FETCH_CHECKLISTS_FAILURE, CHECKLIST_UPDATE, CHECKLIST_UPDATE_FAILURE, CHECKLIST_UPDATE_SUCCESS,
+    CHECKLIST_ITEM_UPDATE, CHECKLIST_ITEM_UPDATE_FAILURE, CHECKLIST_ITEM_UPDATE_SUCCESS, CHECKLIST_ITEM_ADD,
+    CHECKLIST_ITEM_ADD_SUCCESS, CHECKLIST_ITEM_ADD_FAILURE, CHECKLIST_REMOVE, CHECKLIST_REMOVE_FAILURE, 
+    CHECKLIST_REMOVE_SUCCESS, CHECKLIST_ITEM_REMOVE, CHECKLIST_ITEM_REMOVE_SUCCESS, CHECKLIST_ITEM_REMOVE_FAILURE,
+    CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE, WEBHOOK_ADD_CHECKLIST_TO_CARD, WEBHOOK_CONVERT_CHECKITEM_TO_CARD,
+    WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST, WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, 
+    WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
+    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS,
 } from '../actions/actionTypes';
 
 
@@ -477,7 +484,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case LABEL_CREATE_FAILURE: {
-            const { error, id } = payload;
+           const { error, id } = payload;
 
             const labels = [...state.labels];
 
@@ -523,7 +530,6 @@ const dataReducer = (state = initialState, action) => {
             const index = checklists.indexOf(checklist);
             checklists[index] = { ...checklist, ...data };
 
-            console.log(checklists[index]);
 
             return {
                 ...state,
@@ -539,7 +545,244 @@ const dataReducer = (state = initialState, action) => {
             return state;
         }
 
+        case CHECKLIST_CREATE: {
+            const { card, copyFrom, data } = payload;
+
+            const checklists = [...state.checklists];
+
+            let newList = { ...data };
+            if (copyFrom !== 0){
+                const sourceList = checklists.find((l) => l.id === copyFrom);
+                const checkItems = [];
+                sourceList.checkItems.forEach((item, index) => {
+                    checkItems.push({ name: item.name, state: "incomplete", id: "item-" + index });
+                });
+                newList = { ...newList, checkItems };
+            }
+            checklists.push(newList);
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+         
+        case CHECKLIST_CREATE_SUCCESS: {
+            const { data, id } = payload;
+
+            const checklists = [...state.checklists];
+
+            const listToUpdate = checklists.find((list) => list.id === id);
+            if (listToUpdate) {
+                const index = checklists.indexOf(listToUpdate);
+                checklists[index] = { ...listToUpdate, ...data };
+            }
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+        
+        case CHECKLIST_CREATE_FAILURE: {
+            const { card, error, id } = payload;
+
+            const checklists = [...state.checklists];
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+        
+        case CHECKLIST_ITEM_UPDATE: {
+            const { checklist, item, data } = payload;
+
+            const checklists = [...state.checklists];
+            
+            const list = checklists.find((list) => list.id === checklist.id);
+            const index = list.checkItems.indexOf(item);
+            list.checkItems[index] = { ...item, ...data };
+
+            return { 
+                ...state,
+                checklists,
+            }
+        }
+
+        case CHECKLIST_ITEM_UPDATE_SUCCESS: {
+            return state;
+        }
+
+        case CHECKLIST_ITEM_UPDATE_FAILURE: {
+            return state;
+        }
+
+        case CHECKLIST_ITEM_ADD: {
+            const { data } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((list) => data.idChecklist === list.id);
+            list.checkItems.push(data);
+
+            return {
+                ...state,
+                checklists,
+            }
+        }
+
+        case CHECKLIST_ITEM_ADD_SUCCESS: {
+            const { data, id } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((list) => data.idChecklist === list.id);
+            const itemToUpdate = list.checkItems.find((item) => item.id === id);
+            if (itemToUpdate){
+                const index = list.checkItems.indexOf(itemToUpdate);
+                list.checkItems[index] = { ...itemToUpdate, ...data };
+            }
+
+            return {
+                ...state,
+                checklists,
+            }
+        }
+
+        case CHECKLIST_ITEM_ADD_FAILURE: {
+            const { error, id, idChecklist } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((list) => idChecklist === list.id);
+            const item = list.checkItems.find((item) => item.id === id);
+            if (item){
+                const index = list.checkItems.indexOf(item);
+                list.checkItems.splice(index, 1);
+            }
+
+            return {
+                ...state,
+                checklists,
+            };
+        }
+
+        case CHECKLIST_REMOVE: {
+            const { checklist } = payload;
+
+            const checklists = [...state.checklists];
+            const cards = [...state.cards];
+
+            let index = checklists.indexOf(checklist);
+            checklists.splice(index, 1);
+
+            const card = cards.find((c) => c.id === checklist.idCard);
+            index = card.idChecklists.indexOf(checklist.id);
+            card.idChecklists.splice(index, 1);
+
+            return {
+                ...state,
+                cards,
+                checklists
+            }
+        }
+
+        case CHECKLIST_REMOVE_SUCCESS: {
+            return state;
+        }
+
+        case CHECKLIST_REMOVE_FAILURE: {
+            const { error, checklist } = payload;
+
+            const checklists = [...state.checklists];
+            const cards = [...state.cards];
+
+            checklists.push(checklist);
+            const card = cards.find((c) => c.id === checklist.idCard);
+            card.idChecklists.push(checklist.id);
+
+            return {
+                ...state,
+                cards,
+                checklists
+            }
+        }
+
+        case CHECKLIST_ITEM_REMOVE: {
+            const { checklist, item } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            const index = list.checkItems.indexOf(item);
+            list.checkItems.splice(index, 1);
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+
+        case CHECKLIST_ITEM_REMOVE_SUCCESS: {
+            return state;
+        }
+
+        case CHECKLIST_ITEM_REMOVE_FAILURE: {
+            const { error, checklist, item } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            list.checkItems.push(item);
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+
+        case FETCH_CHECKITEMS_SUCCESS: {
+            const { checklist, data } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            list.checkItems = [...data];
+
+            return {
+                ...state,
+                checklists
+            }
+        }
+
+        case FETCH_CHECKITEMS_FAILURE: {
+            const { error } = payload;
+
+            return {
+                ...state
+            }
+        }
+
         // Webhook functions
+        case WEBHOOK_ADD_CHECKLIST_TO_CARD: {
+            const { card, checklist, board } = payload;
+
+            const checklists = [...state.checklists];
+            const cards = [...state.cards];
+
+            checklists.push({ ...checklist, idBoard: board.id, idCard: card.id, checkItems: [] });
+            const cardToUpdate = cards.find((c) => c.id === card.id);
+            const index = cards.indexOf(cardToUpdate);
+            cards[index].idChecklists.push(checklist.id);
+
+            return {
+                ...state,
+                cards,
+                checklists
+            }
+        }
+
         case WEBHOOK_ADD_LABEL_TO_CARD: {
             const { card, label, board } = payload;
 
@@ -556,6 +799,22 @@ const dataReducer = (state = initialState, action) => {
                 ...state,
                 cards
             };
+        }
+
+        case WEBHOOK_CONVERT_CHECKITEM_TO_CARD: {
+            const { card, checklist, board, sourceChecklist } = payload;
+
+            const checklists = [...state.checklists];
+
+            const source = checklists.find((l) => l.id === sourceChecklist.id);
+            const destination = checklist.find((l) => l.id === checklist.id);
+            const index = checklists.indexOf(destination);
+            checklists[index].checkItems = [...source.checkItems];
+
+            return {
+                ...state,
+                checklists
+            }
         }
 
         case WEBHOOK_COPY_CARD: {
@@ -656,6 +915,22 @@ const dataReducer = (state = initialState, action) => {
                 ...state,
                 cards
             };
+        }
+
+        case WEBHOOK_DELETE_CHECKITEM: {
+            const { board, card, checklist, checkItem } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            const item = list.checkItems.find((i) => i.id === checkItem.id);
+            const index = list.checkItems.indexOf(item);
+            list.checkItems.splice(index, 1);
+
+            return {
+                ...state,
+                checklists
+            }
         }
 
         case WEBHOOK_DELETE_LABEL: {
@@ -848,6 +1123,83 @@ const dataReducer = (state = initialState, action) => {
 
         case WEBHOOK_COPY_BOARD: {
             return state;
+        }
+
+        case WEBHOOK_REMOVE_CHECKLIST_FROM_CARD: {
+            const { card, board, checklist } = payload;
+
+            const checklists = [...state.checklists];
+            const cards = [...state.cards];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            let index = checklists.indexOf(list);
+            checklists.splice(index, 1);
+
+            const cardToUpdate = cards.find((c) => c.id === card.id);
+            index = cardToUpdate.idChecklists.indexOf(checklist.id);
+            cardToUpdate.idChecklists.splice(index, 1);
+
+            return {
+                ...state,
+                cards,
+                checklists,
+            };
+        }
+
+        case WEBHOOK_UPDATE_CHECKITEM: {
+            const { board, card, checklist, checkItem, old } = payload;
+
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            list.checkItems.map((i)=> {
+                if (i.id === checkItem.id) {
+                    Object.keys(old).forEach((key) => {
+                        i[key] = checkItem[key];
+                    });
+                }
+            });
+
+            return {
+                ...state,
+                checklists,
+            };
+        }
+
+        case WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD: {
+            const { board, card, checklist, checkItem } = payload;
+            
+            const checklists = [...state.checklists];
+
+            const list = checklists.find((l) => l.id === checklist.id);
+            const item = list.checkItems.find((i) => i.id === checkItem.id);
+            const state = item.state === "complete" ? "complete" : "incomplete";
+            const index = list.checkItems.indexOf(item);
+            list.checkItems[index] = { ...item, state };
+
+            return {
+                ...state,
+                checklists
+            };
+        }
+
+        case WEBHOOK_UPDATE_CHECKLIST: {
+            const { board, card, checklist, old } = payload;
+
+            const checklists = [...state.checklists];
+
+            checklists.map((l) => {
+                if (l.id === checklist.id) {
+                    Object.keys(old).forEach((key) => {
+                        l[key] = checklist[key];
+                    });
+                }
+            });
+
+            return {
+                ...state,
+                checklists
+            };
         }
 
         default: {

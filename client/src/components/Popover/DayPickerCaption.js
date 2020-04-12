@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { DatePickerCaption, DatePickerCaptionLabel, Select } from '../../styles';
+import { StyledDatePickerCaption, StyledDatePickerCaptionLabel, StyledSelect } from '../../styles';
 
 
 export default class DayPickerCaption extends Component {
@@ -46,28 +46,28 @@ export default class DayPickerCaption extends Component {
         const currentMonth = localeUtils.getMonths()[date.getMonth()];
 
         return (
-            <DatePickerCaption>
-                <DatePickerCaptionLabel>
+            <StyledDatePickerCaption>
+                <StyledDatePickerCaptionLabel>
                     {currentMonth}
-                    <Select
+                    <StyledSelect
                         onChange={(e) => this.handleChange(e, 'month')}
                         value={date.getMonth()}
                         tabIndex="-1"  
                     >
                         {this.renderMonthOptions()}
-                    </Select>
-                </DatePickerCaptionLabel>
-                <DatePickerCaptionLabel>
+                    </StyledSelect>
+                </StyledDatePickerCaptionLabel>
+                <StyledDatePickerCaptionLabel>
                     {date.getFullYear()}
-                    <Select
+                    <StyledSelect
                         onChange={(e) => this.handleChange(e, 'year')}
                         value={date.getFullYear()}
                         tabIndex="-1"  
                     >
                         {this.renderYearOptions()}
-                    </Select>
-                </DatePickerCaptionLabel>
-            </DatePickerCaption>
+                    </StyledSelect>
+                </StyledDatePickerCaptionLabel>
+            </StyledDatePickerCaption>
         );
     };
 }

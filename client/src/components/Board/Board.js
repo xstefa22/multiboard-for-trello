@@ -17,13 +17,12 @@ import {
     actionUpdateReceived, actionFetchUserAndCreateWebhook, actionSetSelectedBoards, actionFetchChecklists
 } from '../../actions';
 
-import { BoardWrapper } from '../../styles';
+import { StyledBoardWrapper } from '../../styles';
 
 
 class Board extends Component {
     // Checks if user is logged in or if his data are stored in session
     componentDidMount = () => {
-        console.log(config);
         if (this.props.loggedIn) {
             this.props.actionFetchBoards();
             if (!config.onlyClient){
@@ -137,7 +136,7 @@ class Board extends Component {
         if (!this.shouldComponentRender()) return <div>Receiving Data...</div>;
 
         return (
-            <BoardWrapper>
+            <StyledBoardWrapper>
                 { !config.dev && 
                     <NavBar />
                 }
@@ -162,7 +161,7 @@ class Board extends Component {
                         </Droppable>
                     </DragDropContext>
                 </div>
-            </BoardWrapper>
+            </StyledBoardWrapper>
         );
     };
 }

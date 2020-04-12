@@ -8,7 +8,7 @@ import { MdClose } from 'react-icons/md';
 
 import { actionListCreate } from '../../actions';
 
-import { ListWrapper, Icon, Input, Submit } from '../../styles';
+import { StyledListWrapper, StyledIcon, StyledInput, StyledSubmit } from '../../styles';
 
 
 class AddList extends Component {
@@ -67,13 +67,13 @@ class AddList extends Component {
 
     render = () => {
         return (
-            <ListWrapper
+            <StyledListWrapper
                 className={"mod-add " + (this.state.clickedOn ? '' : 'is-idle')}
                 ref={(node) => { this.node = node; }}
             >
                 { this.state.clickedOn &&
                     <React.Fragment>
-                        <Input
+                        <StyledInput
                             autoComplete="off"
                             className="list-name-input"
                             dir="auto"
@@ -84,19 +84,19 @@ class AddList extends Component {
                             value={this.state.value}
                         />
                         <div className="list-add-controls">
-                            <Submit 
+                            <StyledSubmit 
                                 className="primary mod-list-add-button" 
                                 value="Add a list"
                                 onClick={this.handleCreateNewList}
                             />
-                            <Icon 
+                            <StyledIcon 
                                 className="icon-lg" 
                                 onClick={(this.handleComposer)}
                             >
                                 <IconContext.Provider value={{ size: '24px', color: '#42526e' }}>
                                     <MdClose />
                                 </IconContext.Provider>
-                            </Icon>
+                            </StyledIcon>
                         </div>
                     </React.Fragment>
                 }
@@ -105,7 +105,7 @@ class AddList extends Component {
                         <FontAwesomeIcon icon={faPlus} />&nbsp; Add another list
                     </span>
                 }
-            </ListWrapper>
+            </StyledListWrapper>
         );
     };
 };

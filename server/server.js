@@ -46,7 +46,6 @@ io.on('connection', (socket) => {
   console.log('User connected. Socket id %s', socket.id);
 
   socket.on('update', (data) => {
-    console.log(data);
     socket.broadcast.emit('update', data);
   });
 
