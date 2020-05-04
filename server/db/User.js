@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     apiKey: { type: String, required: true },
     token: { type: String, required: true },
+    socketId: { type: String, required: false },
 });
 
 UserSchema.pre('save', function (next) {

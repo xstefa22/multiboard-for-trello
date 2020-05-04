@@ -6,7 +6,9 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const User = require('./db/User.js');
 
 
 const mongoDB = config.mongoDB;
@@ -16,13 +18,17 @@ const db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-app.use(session({
+const sessionWare = session({
   name: 'Multiboard for Trello',
   resave: false,
   saveUninitialized: false,
   secret: 'register_data',
-  cookie: {},
-}));
+  cookie: {
+  },
+  sockets: [],
+});
+
+app.use(sessionWare);
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -42,15 +48,46 @@ app.get('/*', (request, response, next) => {
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
-io.on('connection', (socket) => {
+io.use((socket, next) => {
+  sessionWare(socket.request, socket.request.res, next);
+});
+
+io.sockets.on('connection', (socket) => {
   console.log('User connected. Socket id %s', socket.id);
 
   socket.on('update', (data) => {
-    socket.broadcast.emit('update', data);
+    console.log(socket.request.session.sockets);
+    const { username } = data.model;
+    User.findOne({ username }, (error, user) => {
+      if (error) {
+
+      } else if (!user) {
+
+      } else {
+        io.to(user.socketId).emit('update', data);
+      }
+    });
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected. %s. Socket id %s', socket.id);
+    console.log('User disconnected. Socket id %s', socket.id);
+
+    User.findOne({ socketId: socket.id }, async (error, user) => {
+      if (error) {
+
+      } else if (!user) {
+
+      } else {
+        const res = await User.updateOne({ username: user.username }, { socketId: '' });
+        console.log(res);
+      }
+    });
+  });
+
+  socket.on('authorization', async (data) => {
+    const { username } = jwt.decode(data);
+
+    const res = await User.updateOne({ username }, { socketId: socket.id });
   });
 });
 

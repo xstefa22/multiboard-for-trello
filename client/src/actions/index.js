@@ -22,7 +22,7 @@ import {
     CHECKLIST_ITEM_REMOVE_FAILURE, CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE,
     WEBHOOK_ADD_CHECKLIST_TO_CARD, WEBHOOK_CONVERT_CHECKITEM_TO_CARD, WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST,
     WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
-    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS,
+    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS, WEBHOOK_REMOVE_MEMBER_FROM_BOARD,
 } from './actionTypes';
 import { findPosition, sortCards } from '../api/index.js';
 
@@ -43,7 +43,8 @@ export const actionFetchLists = _.once(() => {
     const { key, token } = store.getState().authReducer;
     const params = { key, token };
     const { boards, selectedBoardIds } = store.getState().dataReducer;
-    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id));
+    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id) && !board.closed);
+    console.log(toFetch);
 
     let promises = [];
 
@@ -70,7 +71,7 @@ export const actionSetSelectedBoards = (selectedBoardIds) => {
 export const actionFetchCards = _.once(() => {
     const { key, token } = store.getState().authReducer;
     const { boards, selectedBoardIds } = store.getState().dataReducer;
-    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id));
+    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id) && !board.closed);
 
     let promises = [];
 
@@ -96,7 +97,8 @@ export const actionFetchLabels = _.once(() => {
     const { key, token } = store.getState().authReducer;
     const params = { key, token };
     const { boards, selectedBoardIds } = store.getState().dataReducer;
-    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id));
+    console.log(selectedBoardIds);
+    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id) && !board.closed);
 
     let promises = [];
 
@@ -116,7 +118,7 @@ export const actionFetchChecklists = _.once(() => {
     const params = { key, token };
 
     const { boards, selectedBoardIds } = store.getState().dataReducer;
-    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id));
+    const toFetch = boards.filter((board) => selectedBoardIds.includes(board.id) && !board.closed);
 
     let promises = [];
 
@@ -730,6 +732,15 @@ export const actionUpdateReceived = (update) => {
                     label: data.label
                 }
             };
+        }
+        case "removeMemberFromBoard": {
+            return {
+                type: WEBHOOK_REMOVE_MEMBER_FROM_BOARD,
+                payload: {
+                    board: data.board,
+                    memberCreator: data.memberCreator
+                }
+            }
         }
         case "updateBoard": {
             return {

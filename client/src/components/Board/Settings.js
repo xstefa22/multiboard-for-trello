@@ -30,12 +30,12 @@ class Settings extends Component {
     };
 
     handleSave = () => {
-    sessionService.loadUser()
-        .then(({ jwtToken, boardIds }) => {
-            sessionService.saveUser({ jwtToken, boardIds: this.state.selectedBoardIds });
-        }).catch((error) => {
-            console.error(error);
-        });
+        sessionService.loadUser()
+            .then(({ jwtToken, boardIds }) => {
+                sessionService.saveUser({ jwtToken, boardIds: this.state.selectedBoardIds });
+            }).catch((error) => {
+                console.error(error);
+            });
 
         window.location.reload(false);
     }

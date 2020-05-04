@@ -3,10 +3,14 @@ import { withRouter} from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Popover from '@material-ui/core/Popover';
+import config from '../../config';
 
 import '../../css/NavBar.css';
 import Settings from './Settings';
 
+import {
+    StyledBoardHeader, StyledButton, StyledMemberIcon,
+} from '../../styles';
 
 class NavBar extends Component {
     constructor(props) {
@@ -29,15 +33,24 @@ class NavBar extends Component {
     render = () => {
         return (
             <React.Fragment>
-                <div className="board-header">
+                <StyledBoardHeader>
                     <div className="header-right">
-                        <button className="header-member-menu-button" onClick={this.handleClick}>
-                            <div className="member-icon">
-                                <span>{this.props.member.initials}</span>
-                            </div>
-                        </button>
+                        <StyledButton 
+                            className="header-member-menu-button"
+                            onClick={this.handleClick}
+                        >
+                            <StyledMemberIcon>
+                                <span>
+                                { config.dev ?
+                                    'MI'
+                                    :
+                                    this.props.member.initials
+                                }
+                                </span>
+                            </StyledMemberIcon>
+                        </StyledButton>
                     </div>
-                </div>
+                </StyledBoardHeader>
                 <Popover
                     anchorEl={this.state.anchorElement}
                     anchorOrigin={{

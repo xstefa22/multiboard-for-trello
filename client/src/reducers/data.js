@@ -18,7 +18,7 @@ import {
     CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE, WEBHOOK_ADD_CHECKLIST_TO_CARD, WEBHOOK_CONVERT_CHECKITEM_TO_CARD,
     WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST, WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, 
     WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
-    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS,
+    FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS, WEBHOOK_REMOVE_MEMBER_FROM_BOARD,
 } from '../actions/actionTypes';
 
 
@@ -66,22 +66,27 @@ const dataReducer = (state = initialState, action) => {
             const { response } = payload;
 
             const boards = [...response.data];
-            const selectedBoardIds = boards.map((board) => board.id);
             
             return {
                 ...state,
                 boards,
-                selectedBoardIds,
                 boardsReceived: true
             }
         }
 
         case SET_SELECTED_BOARDS: {
             const { selectedBoardIds } = payload;
-            
+
+            let boardIds = [...selectedBoardIds];
+
+            console.log('Boards selected');
+            if (!selectedBoardIds){
+                boardIds = state.boards.map((board) => board.id);
+            }
+
             return {
                 ...state,
-                selectedBoardIds,
+                selectedBoardIds: boardIds,
             };
         }
 
@@ -95,9 +100,9 @@ const dataReducer = (state = initialState, action) => {
         case FETCH_BOARD_SUCCESS: {
             const { board } = payload;
 
-            const boards = [...state.boards];
+            let boards = [...state.boards];
 
-            boards = board.concat(board);
+            boards = boards.concat(board);
 
             return {
                 ...state,
@@ -1199,6 +1204,44 @@ const dataReducer = (state = initialState, action) => {
             return {
                 ...state,
                 checklists
+            };
+        }
+
+        case WEBHOOK_REMOVE_MEMBER_FROM_BOARD: {
+            const { board, memberCreator } = payload;
+
+            let checklists = [...state.checklists];
+            let cards = [...state.cards];
+            let boards = [...state.boards];
+            let lists = [...state.lists];
+            let labels = [...state.labels];
+            let customLists = [...state.customLists];
+
+            const listsOnBoard = lists.filter((l) => l.idBoard === board.id);
+            listsOnBoard.forEach((list) => {
+                const exists = lists.find((l) => l.name === list.name && l.id !== list.id);
+                if (!exists){
+                    const customList = customLists.find((l) => l.name === list.name);
+                    const index = customLists.indexOf(customList);
+                    customLists.splice(index, 1);
+                }
+            });
+
+            checklists = checklists.filter((l) => l.idBoard !== board.id);
+            cards = cards.filter((c) => c.idBoard !== board.id);
+            boards = boards.filter((b) => b.id !== board.id);
+            lists = lists.filter((l) => l.idBoard !== board.id);
+            labels = labels.filter((l) => l.idBoard !== board.id);
+
+
+            return {
+                ...state,
+                boards,
+                cards,
+                lists,
+                labels,
+                checklists,
+                customLists,
             };
         }
 

@@ -23,33 +23,43 @@ import { StyledBoardWrapper } from '../../styles';
 class Board extends Component {
     // Checks if user is logged in or if his data are stored in session
     componentDidMount = () => {
+        console.log(this.props.selectedBoardIds);
         if (this.props.loggedIn) {
+            console.log('Already logged in');
             this.props.actionFetchBoards();
             if (!config.onlyClient){
                 this.props.actionFetchUserAndCreateWebhook();
             }
         } else {
-            if (config.dev) {
-                this.props.actionSetAuth(config.username, config.apiKey, config.token);
-            } else {
-                sessionService.loadUser()
-                    .then(({ jwtToken, boardIds }) => {
-                        const { username, apiKey, token } = jwt.decode(jwtToken);
+            console.log('Retrieving data from session');
+            sessionService.loadUser()
+            .then(({ jwtToken, boardIds }) => {
+                console.log('Data from session received');
+                this.props.actionSetSelectedBoards(boardIds);
+                if (config.dev){
+                    this.props.actionSetAuth(config.username, config.apiKey, config.token);
+                } else {
+                    const { username, apiKey, token } = jwt.decode(jwtToken);
 
-                        this.props.actionSetSelectedBoards(boardIds);
-                        this.props.actionSetAuth(username, apiKey, token);
-                    }).catch((error) => {
-                        console.error(error);
-                    });
+                    this.props.actionSetAuth(username, apiKey, token);
                 }
+            }).catch((error) => {
+                console.error(error);
+            });
         }
         
         // Listens to server sending trello webhook updates
         if (!config.onlyClient && this.props.loggedIn) {
+            const token = jwt.sign({ username: this.props.username }, this.props.username, { expiresIn: '2h' });
             const socket = socketIOClient(config.server);
+            socket.on('connect', () => {
+                socket.emit('authorization', token, (answer) => {
+                });
+            })
             socket.on('update', (data) => {
-                console.log(data);
-                this.props.actionUpdateReceived(data);
+                if (data.username === this.props.username) {
+                    this.props.actionUpdateReceived(data);
+                }
             });
         }
     };
@@ -137,9 +147,7 @@ class Board extends Component {
 
         return (
             <StyledBoardWrapper>
-                { !config.dev && 
-                    <NavBar />
-                }
+                <NavBar />
                 <div className="content">
                     <DragDropContext onDragEnd={this.onDragEnd}>
                         <Droppable
@@ -167,6 +175,7 @@ class Board extends Component {
 }
 
 const mapStateToProps = (state) => {
+    console.log(state.dataReducer.boards);
     return {
         loggedIn: state.authReducer.loggedIn,
         boards: state.dataReducer.boards,
@@ -176,6 +185,8 @@ const mapStateToProps = (state) => {
         listsReceived: state.dataReducer.listsReceived,
         customLists: state.dataReducer.customLists,
         customListsCreated: state.dataReducer.customListsCreated,
+        selectedBoardIds: state.dataReducer.selectedBoardIds,
+        username: state.authReducer.username,
     };
 }
 

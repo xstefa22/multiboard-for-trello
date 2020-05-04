@@ -80,6 +80,53 @@ export const StyledBoardWrapper = styled.div`
     }
 `
 
+export const StyledBoardHeader = styled.div`
+    background: rgba(0, 0, 0, 0.15);
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	height: 32px;
+	min-height: 40px;
+	overflow: hidden;
+	padding: 4px;
+	position: relative;
+    z-index: 10;
+    
+    .header-right {
+        display: flex;
+        justify-content: flex-end;
+        flex-grow: 1;
+    }
+`
+
+export const StyledMemberIcon = styled.div`
+    position: relative;
+    line-height: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    
+    span {
+        height: 32px;
+        width: 32px;
+        line-height: 32px;
+        font-size: 14px;
+        align-items: center;
+        background-color: #dfe1e6;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        background-size: cover;
+        border: 0;
+        border-radius: 100%;
+        box-sizing: border-box;
+        color: #172b4d;
+        display: inline-flex;
+        font-weight: 700;
+        justify-content: center;
+        opacity: 1;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+`
 
 export const StyledListWrapper = styled.div`
     width: 272px;
@@ -1195,6 +1242,26 @@ export const StyledButton = styled.a.attrs({ href: '/#' })`
 
     &.full {
         width: 100%;
+    }
+
+    &.header-member-menu-button {
+        border: none;
+        border-radius: 3px;
+        box-shadow: none;
+        color: #172b4d;
+        cursor: pointer;
+        background-color: transparent;
+        display: block;
+        height: 32px;
+        margin-right: 0;
+        position: relative;
+        text-decoration: none;
+        width: 32px;
+        line-height: 32px;
+        padding: 0;
+        transition: 0.1s ease;
+        white-space: nowrap;
+	    outline: 0;
     }
 `
 
