@@ -6,8 +6,10 @@ import jwt from 'jsonwebtoken';
 
 import { actionSetAuth } from '../actions';
 
-import '../css/LoginForm.css';
-
+import {
+    StyledInnerSection, StyledSectionWrapper, StyledAccountForm, StyledH1, StyledInput,
+    StyledSubmit, StyledForm, StyledDivider, StyledFormLink, StyledLink
+} from '../styles';
 
 class OneTimeLogin extends Component {
     constructor(props) {
@@ -50,70 +52,57 @@ class OneTimeLogin extends Component {
     render = () => {
         return (
             <React.Fragment>
-                <section className="inner-section">
-                    <div className="section-wrapper quick-switch">
-                        <div className="layout-twothirds-center account-form">
-                            <h1>Log in to Multiboard for Trello using your Trello API credentials</h1>
-                            <div className="login-password-container">
-                                <form id="login-form" onSubmit={this.handleSubmit}>
-                                    <div className="login-password-container-email">
-                                        <div className="email-password">
-                                            <div className="hide-when-two-factor">
-                                                <input 
-                                                    required 
-                                                    type="text" 
-                                                    name="username" 
-                                                    id="username" 
-                                                    className="form-field" 
-                                                    autoCorrect="off" 
-                                                    spellCheck="false" 
-                                                    autoCapitalize="off" 
-                                                    autoFocus="autofocus" 
-                                                    placeholder="Enter username" 
-                                                    onChange={(event) => this.setState({ usernameVal: event.target.value })} 
-                                                    value={this.state.usernameVal}
-                                                />
-                                                <input 
-                                                    required 
-                                                    type="text" 
-                                                    name="apiKey" 
-                                                    id="apiKey" 
-                                                    className="form-field" 
-                                                    autoCorrect="off" 
-                                                    spellCheck="false" 
-                                                    autoCapitalize="off" 
-                                                    autoFocus="autofocus" 
-                                                    placeholder="Enter your API key" 
-                                                    onChange={(event) => this.setState({ apiKeyVal: event.target.value })} 
-                                                    value={this.state.apiKeyVal}
-                                                />
-                                                <input 
-                                                    required 
-                                                    type="text" 
-                                                    name="token" 
-                                                    id="token" 
-                                                    className="form-field" 
-                                                    autoCorrect="off" 
-                                                    spellCheck="false" 
-                                                    autoCapitalize="off" 
-                                                    autoFocus="autofocus" 
-                                                    placeholder="Enter token" 
-                                                    onChange={(event) => this.setState({ tokenVal: event.target.value })} 
-                                                    value={this.state.tokenVal}
-                                                />
-                                            </div>
-                                        </div>
-                                        <button type="submit" className="button account-button button-green btn btn-success btn-register">Log in</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <hr />
-                            <span className="bottom-form-link">
-                                <a href="/user/login">Already have an account? Log In</a>
-                            </span>
-                        </div>
-                    </div>
-                </section>
+                <StyledInnerSection>
+                    <StyledSectionWrapper>
+                        <StyledAccountForm>
+                            <StyledH1>Log in to Multiboard for Trello</StyledH1>
+                            <StyledForm 
+                                id="loginForm" 
+                                onSubmit={this.handleSubmit}
+                            >
+                                <StyledInput 
+                                    required 
+                                    name="username" 
+                                    id="username" 
+                                    className="form-field" 
+                                    autoCorrect="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
+                                    autoFocus="autofocus" 
+                                    placeholder="Enter username" 
+                                    onChange={(event) => this.setState({ usernameVal: event.target.value })} 
+                                    value={this.state.usernameVal}
+                                />
+                                <StyledInput 
+                                    required
+                                    name="apiKey" 
+                                    id="apiKey" 
+                                    className="form-field" 
+                                    placeholder="Enter your API key" 
+                                    onChange={(event) => this.setState({ apiKeyVal: event.target.value })} 
+                                    value={this.state.apiKeyVal}
+                                />
+                                <StyledInput 
+                                    required
+                                    name="token" 
+                                    id="token" 
+                                    className="form-field" 
+                                    placeholder="Enter token" 
+                                    onChange={(event) => this.setState({ tokenVal: event.target.value })} 
+                                    value={this.state.tokenVal}
+                                />
+                                <StyledSubmit
+                                    className="primary full mod-account"
+                                    value="Log In"
+                                />
+                            </StyledForm>
+                            <StyledDivider />
+                            <StyledFormLink className="bottom-form-link">
+                                <StyledLink href="/user/login">Already have an account? Log In</StyledLink>
+                            </StyledFormLink>
+                        </StyledAccountForm>
+                    </StyledSectionWrapper>
+                </StyledInnerSection>
             </React.Fragment>
         );
     }

@@ -1,8 +1,6 @@
 import config from '../config.js';
 const User = require('../db/User.js');
 const OAuth = require('oauth').OAuth;
-const passport = require('passport');
-const { Strategy: TrelloStrategy } = require('passport-trello');
 const url = require('url');
 const jwt = require('jsonwebtoken');
 let socket = require('socket.io-client')(config.server);
@@ -67,7 +65,7 @@ module.exports = (app) => {
 
     app.post('/user/login', async (request, response, next) => {
         const { username, password } = request.body;
-
+        
         User.findOne({ username }, (error, user) => {
             if (error) {
                 console.error(error);

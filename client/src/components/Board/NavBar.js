@@ -5,11 +5,11 @@ import { connect } from 'react-redux';
 import Popover from '@material-ui/core/Popover';
 import config from '../../config';
 
-import '../../css/NavBar.css';
 import Settings from './Settings';
 
 import {
-    StyledBoardHeader, StyledButton, StyledMemberIcon,
+    StyledBoardHeader, StyledButton, StyledMemberIcon, StyledMemberPopover, StyledMemberPopoverHeader,
+    StyledMemberPopoverContent, StyledUList, StyledUListItem, StyledH1
 } from '../../styles';
 
 class NavBar extends Component {
@@ -68,19 +68,27 @@ class NavBar extends Component {
                         marginLeft: '10px',
                     }}
                 >
-                    <div className="member-popup">
-                        <header className="member-popup-header">
-                            <h1>{this.props.member.fullName + " (" + this.props.member.username + ")"}</h1>
-                        </header>
-                        <div className="member-popup-items">
-                            <nav>
-                                <ul>
-                                    <li className="member-popup-item" onClick={() => this.setState({ settingsOpen: true })}><a href="/#">Settings</a></li>
-                                    <li className="member-popup-item" onClick={() => this.props.history.push('/user/logout')}><a href="/#">Log Out</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
+                    <StyledMemberPopover>
+                        <StyledMemberPopoverHeader>
+                            <StyledH1>{this.props.member.fullName + " (" + this.props.member.username + ")"}</StyledH1>
+                        </StyledMemberPopoverHeader>
+                        <StyledMemberPopoverContent>
+                            <StyledUList>
+                                <StyledUListItem
+                                    className="member-popup-item" 
+                                    onClick={() => this.setState({ settingsOpen: true })}
+                                >
+                                    Settings
+                                </StyledUListItem>
+                                <StyledUListItem
+                                    className="member-popup-item" 
+                                    onClick={() => this.props.history.push('/user/logout')}
+                                >
+                                    Log Out
+                                </StyledUListItem>
+                            </StyledUList>
+                        </StyledMemberPopoverContent>
+                    </StyledMemberPopover>
                 </Popover>
                 <Settings
                     onClose={() => this.setState({ settingsOpen: false })}

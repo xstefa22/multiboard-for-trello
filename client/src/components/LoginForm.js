@@ -8,7 +8,10 @@ import jwt from 'jsonwebtoken';
 import { actionSetAuth, actionSetSelectedBoards } from '../actions';
 import config from '../config.js';
 
-import '../css/LoginForm.css';
+import {
+    StyledInnerSection, StyledSectionWrapper, StyledAccountForm, StyledH1, StyledInput,
+    StyledSubmit, StyledForm, StyledDivider, StyledFormLink, StyledLink
+} from '../styles';
 
 
 class LoginForm extends Component {
@@ -69,55 +72,52 @@ class LoginForm extends Component {
     render = () => {
         return (
             <React.Fragment>
-                <section className="inner-section">
-                    <div className="section-wrapper quick-switch">
-                        <div className="layout-twothirds-center account-form">
-                            <h1>Log in to Multiboard for Trello</h1>
-                            <div className="login-password-container">
-                                <form id="login-form" onSubmit={this.handleSubmit}>
-                                    <div className="login-password-container-email">
-                                        <div className="email-password">
-                                            <div className="hide-when-two-factor">
-                                                <input 
-                                                    required 
-                                                    type="text" 
-                                                    name="username" 
-                                                    id="username" 
-                                                    className="form-field" 
-                                                    autoCorrect="off" 
-                                                    spellCheck="false" 
-                                                    autoCapitalize="off" 
-                                                    autoFocus="autofocus" 
-                                                    placeholder="Enter username" 
-                                                    onChange={(event) => this.setState({ usernameVal: event.target.value })} 
-                                                    value={this.state.usernameVal}
-                                                />
-                                                <input 
-                                                    required
-                                                    type="password" 
-                                                    name="password" 
-                                                    id="password" 
-                                                    className="form-field" 
-                                                    placeholder="Enter password" 
-                                                    onChange={(event) => this.setState({ passwordVal: event.target.value })} 
-                                                    value={this.state.passwordVal} 
-                                                />
-                                            </div>
-                                        </div>
-                                        <button type="submit" className="button account-button button-green btn btn-success btn-register">Log in</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <hr />
-                            <span className="bottom-form-link">
-                                <a href="/user/register">Register and create your account</a>
-                            </span>
-                            <span className="bottom-form-link">
-                            <a href="/user/one-time">Or use one-time login</a>
-                        </span>
-                        </div>
-                    </div>
-                </section>
+                <StyledInnerSection>
+                    <StyledSectionWrapper>
+                        <StyledAccountForm>
+                            <StyledH1>Log in to Multiboard for Trello</StyledH1>
+                            <StyledForm 
+                                id="loginForm" 
+                                onSubmit={this.handleSubmit}
+                            >
+                                <StyledInput 
+                                    required 
+                                    name="username" 
+                                    id="username" 
+                                    className="form-field" 
+                                    autoCorrect="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
+                                    autoFocus="autofocus" 
+                                    placeholder="Enter username" 
+                                    onChange={(event) => this.setState({ usernameVal: event.target.value })} 
+                                    value={this.state.usernameVal}
+                                />
+                                <StyledInput 
+                                    required
+                                    type="password"
+                                    name="password" 
+                                    id="password" 
+                                    className="form-field" 
+                                    placeholder="Enter password" 
+                                    onChange={(event) => this.setState({ passwordVal: event.target.value })} 
+                                    value={this.state.passwordVal} 
+                                />
+                                <StyledSubmit
+                                    className="primary full mod-account"
+                                    value="Log In"
+                                />
+                            </StyledForm>
+                            <StyledDivider />
+                            <StyledFormLink className="bottom-form-link">
+                                <StyledLink href="/user/register">Register and create your account</StyledLink>
+                            </StyledFormLink>
+                            <StyledFormLink className="bottom-form-link">
+                                <StyledLink href="/user/one-time">Or use one-time login</StyledLink>
+                            </StyledFormLink>
+                        </StyledAccountForm>
+                    </StyledSectionWrapper>
+                </StyledInnerSection>
             </React.Fragment>
         );
     };

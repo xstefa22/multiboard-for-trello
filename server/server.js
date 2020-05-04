@@ -13,7 +13,7 @@ const User = require('./db/User.js');
 
 const mongoDB = config.mongoDB;
 
-mongoose.connect(mongoDB, { });
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -29,9 +29,6 @@ const sessionWare = session({
 });
 
 app.use(sessionWare);
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use(express.json());
 app.use(cookieParser());

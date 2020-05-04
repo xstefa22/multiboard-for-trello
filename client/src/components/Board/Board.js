@@ -21,20 +21,29 @@ import { StyledBoardWrapper } from '../../styles';
 
 
 class Board extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            ready: false,
+        }
+    }
+
     // Checks if user is logged in or if his data are stored in session
     componentDidMount = () => {
-        console.log(this.props.selectedBoardIds);
         if (this.props.loggedIn) {
-            console.log('Already logged in');
+            sessionService.loadUser()
+            .then(({ jwtToken, boardIds }) => {
+                this.props.actionSetSelectedBoards(boardIds);
+            }).catch((error) => {
+            });
             this.props.actionFetchBoards();
             if (!config.onlyClient){
                 this.props.actionFetchUserAndCreateWebhook();
             }
         } else {
-            console.log('Retrieving data from session');
             sessionService.loadUser()
             .then(({ jwtToken, boardIds }) => {
-                console.log('Data from session received');
                 this.props.actionSetSelectedBoards(boardIds);
                 if (config.dev){
                     this.props.actionSetAuth(config.username, config.apiKey, config.token);
@@ -44,7 +53,7 @@ class Board extends Component {
                     this.props.actionSetAuth(username, apiKey, token);
                 }
             }).catch((error) => {
-                console.error(error);
+                this.props.history.push('/user/login');
             });
         }
         
@@ -64,34 +73,18 @@ class Board extends Component {
         }
     };
 
-    // Checks if all data needed are fetched and then allow component to render
-    shouldComponentRender = () => {
-        if (!this.props.boardsReceived) {
-            return false;
-        }
-
-        if (!this.props.listsReceived) {
-            if (this.props.boardsReceived) {
-                this.props.actionFetchLabels(this.props.boards);
-                this.props.actionFetchChecklists(this.props.boards);
-                this.props.actionFetchLists(this.props.boards);
-            }
-            return false;
-        }
-        if (!this.props.cardsReceived) {
-            if (this.props.boardsReceived) {
-                this.props.actionFetchCards(this.props.boards);
-            }
-            return false;
-        }
-        if (!this.props.customListsCreated) {
+    componentDidUpdate = (prevProps, prevState, snapshot) => {
+        if (!prevProps.boardsReceived && this.props.boardsReceived) {
+            this.props.actionFetchLists();
+            this.props.actionFetchCards();
+            this.props.actionFetchLabels();
+            this.props.actionFetchChecklists();
+        } else if (!prevProps.listsReceived && this.props.listsReceived) {
             this.props.actionCreateCustomLists();
-
-            return false;
+        } else if (!prevProps.customListsCreated && this.props.customListsCreated) {
+            this.setState({ ready: !prevState.ready });
         }
-
-        return true;
-    };
+    }
 
     // Handles moving list or card event
     onDragEnd = (result) => {
@@ -143,7 +136,7 @@ class Board extends Component {
             return <Redirect to="/user/login" />;
         }
 
-        if (!this.shouldComponentRender()) return <div>Receiving Data...</div>;
+        if (!this.state.ready) return <div>Receiving Data...</div>;
 
         return (
             <StyledBoardWrapper>
@@ -175,7 +168,6 @@ class Board extends Component {
 }
 
 const mapStateToProps = (state) => {
-    console.log(state.dataReducer.boards);
     return {
         loggedIn: state.authReducer.loggedIn,
         boards: state.dataReducer.boards,

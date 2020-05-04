@@ -6,14 +6,20 @@ import { AiOutlineTag, AiOutlineUser, AiOutlineClockCircle } from 'react-icons/a
 import { FiArchive } from 'react-icons/fi';
 import { IoMdArrowForward } from 'react-icons/io';
 import { MdContentCopy } from 'react-icons/md';
-import Popover from '@material-ui/core/Popover';
+import { IconContext } from "react-icons";
+
+import CustomPopover from '../Popover/CustomPopover';
 
 import {
     actionCardActionMove, actionCardActionCopy, actionCardActionArchive, actionLabelCreate,
     actionLabelEdit, actionCardUpdate,
 } from '../../actions';
 
-import '../../css/CardEditor.css';
+import {
+    StyledCardEditor, StyledCardEditorContent, StyledCardEditorCard, StyledCardEditorCover, StyledCardEditorDetails,
+    StyledSubmit, StyledCardEditorButtonsItem, StyledIcon, StyledCardEditorButtons, StyledTextArea,
+    StyledCardLabels, StyledCardLabel,
+} from '../../styles';
 
 
 class CardEditor extends Component {
@@ -22,6 +28,7 @@ class CardEditor extends Component {
 
         this.handleClose = this.handleClose.bind(this);
         this.setAction = this.setAction.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         this.handleCardArchive =  this.handleCardArchive.bind(this);
         this.handleEditCardName = this.handleEditCardName.bind(this);
         this.handlePopOverClose = this.handlePopOverClose.bind(this);
@@ -37,7 +44,7 @@ class CardEditor extends Component {
 
     // Handles hiding card editor modal
     handleClose = (event) => {
-        if (event.target.className === "quick-card-editor") {
+        if (event.target.classList.contains("window-overlay")) {
             if (this.state.cardNameValue !== this.props.data.name) {
                 this.handleEditCardName();
             }
@@ -50,7 +57,6 @@ class CardEditor extends Component {
         this.props.actionCardActionArchive(this.props.data, this.props.index);
     };
 
-
     // Handle editing card's name
     handleEditCardName = () => {
         if (this.state.cardNameValue !== this.props.data.name) {
@@ -59,6 +65,16 @@ class CardEditor extends Component {
 
             this.props.actionCardUpdate(data, { name: cardNameValue }, true);
         }
+    };
+
+    handleClick = (event, action) => {
+        let { anchorElement } = this.state;
+
+        if (action !== 'addLabel' || action !== 'editLabel'){
+            anchorElement = event.currentTarget;
+        }
+
+        this.setState({ anchorElement, action });
     };
 
     setAction = (action) => {
@@ -72,9 +88,7 @@ class CardEditor extends Component {
     renderCardLabels = () => {
         return this.props.data.labels.map((label, index) => {
             return (
-                <span className={"card-label card-label-" + label.color + " mod-card-front"} key={label.id}>
-                    <span className="label-text">{label.name}</span>
-                </span>
+                <StyledCardLabel key={label.id} className={"label-" + (label.color) + " mod-card-front "} title={label.title} />
             );
         });
     }
@@ -83,72 +97,66 @@ class CardEditor extends Component {
         return (
             <Dialog
                 aria-labelledby="card-editor"
-                disableEnforceFocus={true}
                 open={this.props.isOpen}
                 onClick={this.handleClose}
             >
-                <div className="quick-card-editor">
-                    <span className="icon-lg icon-close quick-card-editor-close-icon js-close-editor"></span>
-                    <div className="quick-card-editor-card" style={{ position: 'fixed', top: this.props.offsetTop, left: this.props.offsetLeft, width: '256px' }}>
-                        <div className="list-card list-card-quick-edit js-stop" style={{ width: '256px' }}>
-                            <div className="list-card-cover js-card-cover"></div>
-                            <div className="list-card-stickers-area js-stickers-area hide">
-                                <div className="stickers js-card-stickers"></div>
-                            </div>
-                            <div className="list-card-details js-card-details">
+                <StyledCardEditor className="window-overlay">
+                    <StyledCardEditorContent style={{ position: 'fixed', top: this.props.offsetTop, left: this.props.offsetLeft, width: '256px' }}>
+                        <StyledCardEditorCard style={{ width: '256px' }}>
+                            <StyledCardEditorCover></StyledCardEditorCover>
+                            <StyledCardEditorDetails>
                                 { this.props.data.labels.length > 0 &&
-                                    <div className="list-card-labels js-card-labels">
+                                    <StyledCardLabels>
                                         {this.renderCardLabels()}
-                                    </div>
+                                    </StyledCardLabels>
                                 }
-                                <textarea
-                                    className="list-card-edit-title js-edit-card-title"
+                                <StyledTextArea
+                                    className="list-card-edit-title"
                                     dir="auto" style={{ overflow: 'hidden', overflowWrap: 'break-word', resize: 'none', height: '90px' }}
                                     value={this.state.cardNameValue}
                                     onChange={(event) => this.setState({ cardNameValue: event.target.value })}
                                 />
-                                <div className="badges hidden">
-                                    <span className="js-badges"></span>
-                                    <span className="custom-field-front-badges js-custom-field-badges"></span>
-                                    <span className="js-plugin-badges"></span>
-                                </div>
-                                <div className="list-card-members js-list-card-members"></div>
-                            </div>
-                        </div>
-                        <input className="primary wide js-save-edits" type="submit" value="Save" onClick={() => { this.handleEditCardName(); this.props.onClose(); }} />
-                        <div className="quick-card-editor-buttons fade-in">
-                            <a className="quick-card-editor-buttons-item" href="/#" onClick={(e) => this.handleClick(e, 'labels')}>
-                                <span className="icon-sm icon-label light"><AiOutlineTag color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Edit Labels</span>
-                            </a>
-                            <a className="quick-card-editor-buttons-item" href="//#">
-                                <span className="icon-sm icon-member light"><AiOutlineUser color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Change Members</span>
-                            </a>
-                            <a className="quick-card-editor-buttons-item" href="/#" onClick={(e) => this.handleClick(e, 'move')}>
-                                <span className="icon-sm icon-move light"><IoMdArrowForward color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Move</span>
-                            </a>
-                            <a className="quick-card-editor-buttons-item" href="/#" onClick={(e) => this.handleClick(e, 'copy')}>
-                                <span className="icon-sm icon-card light"><MdContentCopy color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Copy</span>
-                            </a>
-                            <a className="quick-card-editor-buttons-item" href="/#" onClick={(e) => this.handleClick(e, 'dueDate')}>
-                                <span className="icon-sm icon-clock light"><AiOutlineClockCircle color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Change Due Date</span>
-                            </a>
-                            <a className="quick-card-editor-buttons-item" href="/#" onClick={this.handleCardArchive}>
-                                <span className="icon-sm icon-archive light"><FiArchive color="white"/></span>
-                                <span className="quick-card-editor-buttons-item-text">Archive</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <Popover
+                            </StyledCardEditorDetails>
+                        </StyledCardEditorCard>
+                        <StyledSubmit 
+                            className="primary wide"
+                            onClick={() => { this.handleEditCardName(); this.props.onClose(); }}
+                            value="Save"
+                        />
+                        <StyledCardEditorButtons>
+                            <StyledCardEditorButtonsItem onClick={(e) => this.handleClick(e, 'labels')}>
+                                <StyledIcon className="icon-sm"><AiOutlineTag/></StyledIcon>
+                                <span>Edit Labels</span>
+                            </StyledCardEditorButtonsItem>
+                            <StyledCardEditorButtonsItem>
+                                <StyledIcon className="icon-sm"><AiOutlineUser/></StyledIcon>
+                                <span>Change Members</span>
+                            </StyledCardEditorButtonsItem>
+                            <StyledCardEditorButtonsItem onClick={(e) => this.handleClick(e, 'move')}>
+                                <StyledIcon className="icon-sm"><IoMdArrowForward/></StyledIcon>
+                                <span>Move</span>
+                            </StyledCardEditorButtonsItem>
+                            <StyledCardEditorButtonsItem onClick={(e) => this.handleClick(e, 'copy')}>
+                                <StyledIcon className="icon-sm"><MdContentCopy/></StyledIcon>
+                                <span>Copy</span>
+                            </StyledCardEditorButtonsItem>
+                            <StyledCardEditorButtonsItem onClick={(e) => this.handleClick(e, 'dueDate')}>
+                                <StyledIcon className="icon-sm"><AiOutlineClockCircle/></StyledIcon>
+                                <span>Change Due Date</span>
+                            </StyledCardEditorButtonsItem>
+                            <StyledCardEditorButtonsItem onClick={this.handleCardArchive}>
+                                <StyledIcon className="icon-sm"><FiArchive/></StyledIcon>
+                                <span>Archive</span>
+                            </StyledCardEditorButtonsItem>
+                        </StyledCardEditorButtons>
+                    </StyledCardEditorContent>
+                </StyledCardEditor>
+                <CustomPopover
                     action={this.state.action}
                     anchorElement={this.state.anchorElement}
                     data={this.props.data}
                     onClose={this.handlePopOverClose}
+                    open={Boolean(this.state.anchorElement)}
                     setAction={this.setAction}
                 />
             </Dialog>

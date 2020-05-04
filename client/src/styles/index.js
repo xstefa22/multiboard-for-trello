@@ -68,7 +68,7 @@ export const StyledBoardWrapper = styled.div`
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: -webkit-fill-available;
 
     .content {
         position: relative;
@@ -292,7 +292,7 @@ export const StyledCardComposer = styled.div`
     }
 `
 
-export const StyledInput = styled.input.attrs({ type: 'text' })`
+export const StyledInput = styled.input.attrs({ type: props => props.type || 'text' })`
     background-color: #fafbfc;
     border: none;
     box-shadow: inset 0 0 0 2px #dfe1e6;
@@ -342,6 +342,31 @@ export const StyledInput = styled.input.attrs({ type: 'text' })`
             background: #fff;
             border: none;
             box-shadow: inset 0 0 0 2px #0079bf;
+        }
+    }
+
+    &.form-field {
+        font-size: 14px;
+        background: #EDEFF0;
+        background-color: #FAFBFC;
+        border: 2px solid #DFE1E6;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        border-radius: 3px;
+        height: 44px;
+        -webkit-transition: background-color .2s ease-in-out 0s,border-color .2s ease-in-out 0s;
+        transition: background-color .2s ease-in-out 0s,border-color .2s ease-in-out 0s;
+        padding: .5em;
+        max-width: 400px;
+        width: 100%;
+        margin: 0 0 1.2em;
+        box-shadow: none;
+        line-height: normal;
+
+        &:focus {
+            background-color: white;
+            border: 2px solid #4C9AFF;
+            box-shadow: 0 0 0;
         }
     }
 `
@@ -437,6 +462,15 @@ export const StyledTextArea = styled.textarea`
         box-shadow: inset 0 0 0 1px rgba(9,30,66,.13);
         margin-bottom: 4px;
         height: 56px
+    }
+
+    &.list-card-edit-title {
+        background-color: #fff;
+        border: 1px solid transparent;
+        box-shadow: none;
+        height: 90px;
+        padding: 0;
+        margin: -1px;
     }
 `
 
@@ -543,6 +577,13 @@ export const StyledSubmit = styled.input.attrs({ type: 'submit' })`
     &.mod-float-right {
         float: right;
     }
+
+    &.mod-account {
+        padding: .6em 1.3em;
+        font-weight: bold;
+        border-radius: .3em;
+        margin-top: 0;
+    }
 `
 
 export const StyledIcon = styled.div`
@@ -648,6 +689,12 @@ export const StyledIcon = styled.div`
         top: 0;
         left: 0;
         z-index: 2;
+    }
+
+    &.board-selected-icon {
+        position: absolute;
+        bottom: 0;
+        right: 0;
     }
 `
 
@@ -959,6 +1006,12 @@ export const StyledDialogContent = styled.div`
     position: relative;
     width: 552px;
     z-index: 0;
+
+    &.settings {
+        padding: 0;
+        margin: 16px 8px 8px 16px;
+        width: 100%;
+    }
 `
 
 export const StyledDialogTitle = styled.div`
@@ -1253,7 +1306,7 @@ export const StyledButton = styled.a.attrs({ href: '/#' })`
         background-color: transparent;
         display: block;
         height: 32px;
-        margin-right: 0;
+        margin: 0;
         position: relative;
         text-decoration: none;
         width: 32px;
@@ -1470,11 +1523,43 @@ export const StyledUList = styled.ul`
     &.edit-labels {
         margin-bottom: 8px;
     }
+
+    &.board-options { 
+        display: flex;
+        flex-wrap: wrap;
+    }
 `
 
 export const StyledUListItem = styled.li`
     padding-right: 36px;
     position: relative;
+
+    &.member-popup-item {
+        cursor: pointer;
+        background-color: transparent;
+        border: none;
+        background: #fff;
+        border-radius: 0;
+        box-shadow: none;
+        color: #172b4d;
+        display: block;
+        height: 100%;
+        padding: 6px 12px;
+        text-align: left;
+        text-decoration: none;
+        width: 100%;
+        transition: none;
+        margin: 0;
+        outline: 0;
+
+        &:hover {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            color: #172b4d;
+            background: rgba(9,30,66,.04);
+        }
+    }
 `
 
 export const StyledDatePicker = styled.div`
@@ -1716,3 +1801,241 @@ export const StyledItemAction = styled.a.attrs({ href: "/#" })`
     margin: 0 -12px;
     text-decoration: none;
 `
+
+export const StyledH1 = styled.h1`
+`
+
+export const StyledInnerSection = styled.section`
+    margin-top: 100px;
+    width: 100%;
+    padding: 0px;
+    overflow: visible;
+    margin-bottom: 30px;
+
+    ${StyledH1} {
+        text-align: center;
+        color: 
+        #5E6C84;
+        font-size: 16px;
+        letter-spacing: -0.01em;
+        line-height: 28px;
+        margin-top: 10px;
+        margin-bottom: 25px;
+    }
+`
+
+export const StyledSectionWrapper = styled.div`
+    max-width: 400px;
+    margin: 0 auto;
+`
+
+export const StyledAccountForm = styled.div`
+    display: block;
+    max-width: 585px;
+    margin: 0 auto;
+    position: relative;
+    background-color: #FFFFFF;
+    border-radius: 3px;
+    padding: 25px 40px;
+    box-shadow: rgba(0,0,0,0.1) 0 0 10px;
+`
+
+export const StyledDivider = styled.hr`
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid hsl(0,0%,80%);
+    margin: 25px 0 1em 0;
+    padding: 0;
+`
+
+export const StyledForm = styled.form`
+`
+
+export const StyledFormLink = styled.span`
+    text-align: center;
+    font-size: 14px;
+    display: block;
+    padding: 0;
+`
+
+export const StyledLink = styled.a`
+    background: transparent;
+    text-decoration: none;
+    color: #0052CC;
+`
+
+export const StyledBoardOption = styled.li`
+    width: 22.5%;
+	padding: 0;
+    margin: 0 2% 2% 0;
+	transform: translate(0);
+	box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+`
+
+export const StyledBoardTile = styled.button`
+    border-radius: 3px;
+    border: none;
+	display: block;
+	background-color: #97a0af;
+    background-size: cover;
+    background-position: 50%;
+    color: #fff;
+    line-height: 20px;
+    padding: 8px;
+    position: relative;
+    text-decoration: none;
+    width: 100%;
+    outline: none;
+`
+
+export const StyledBoardTileDetails = styled.div`
+    display: flex;
+    height: 80px;
+    position: relative;
+    flex-direction: column;
+    justify-content: space-between;
+`
+
+export const StyledBoardTileDetailsName = styled.div`
+    flex: 0 0 auto;
+    font-size: 16px;
+    font-weight: 700;
+    display: inline-block;
+    overflow: hidden;
+    max-height: 40px;
+    width: 100%;
+    word-wrap: break-word;
+    text-align: left;
+`
+
+export const StyledMemberPopover = styled.div`
+    z-index: 70;
+	width: 304px;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 400;
+	background-color: #fff;
+	border-radius: 3px;
+	box-shadow: 0 8px 16px -4px rgba(9, 30, 66, 0.25), 0 0 0 1px rgba(9, 30, 66, 0.08);
+	box-sizing: border-box;
+	outline: 0;
+	overflow: hidden;
+`
+
+export const StyledMemberPopoverHeader = styled.header`
+    margin-bottom: 8px;
+	padding: 0 12px;
+	position: relative;
+	text-align: center;
+	display: grid;
+    grid-template-columns: 12px 1fr 12px;
+    
+    ${StyledH1} {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 400;
+        border-bottom: 1px solid rgba(9, 30, 66, 0.13);
+        color: #5e6c84;
+        height: 40px;
+        display: block;
+        line-height: 40px;
+        margin: 0;
+        overflow: hidden;
+        padding: 0 32px;
+        position: relative;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        grid-column: 1 / span 3;
+        grid-row: 1;
+    }
+`
+
+export const StyledMemberPopoverContent = styled.div`
+    padding: 0 0 12px 0;
+	overflow: hidden;
+	max-height: 672px;
+`
+
+export const StyledCardEditor = styled.div`
+    bottom: 0;
+    color: #fff;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 10;
+`
+
+export const StyledCardEditorContent = styled.div`
+    position: absolute;
+    z-index: 1;
+`
+
+export const StyledCardEditorCard = styled.div`
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(9,30,66,.25);
+    cursor: default;
+    display: block;
+    margin-bottom: 8px;
+    max-width: 300px;
+    min-height: 20px;
+    position: relative;
+    text-decoration: none;
+    z-index: 1;
+`
+
+export const StyledCardEditorCover = styled.div`
+    background-position: 50%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+`
+
+export const StyledCardEditorDetails = styled.div`
+    overflow: hidden;
+    padding: 6px 8px 2px;
+    position: relative;
+    z-index: 10;
+`
+
+export const StyledCardEditorButtons = styled.div`
+    left: 100%;
+    position: absolute;
+    top: 0;
+    width: 240px;
+    z-index: 0;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 85ms ease-in,transform 85ms ease-in;
+`
+
+export const StyledCardEditorButtonsItem = styled.a.attrs({ href: '/#' })`
+    background: rgba(0,0,0,.6);
+    border-radius: 3px;
+    clear: both;
+    color: #e6e6e6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    float: left;
+    margin: 0 0 4px 8px;
+    padding: 6px 12px 6px 8px;
+    text-decoration: none;
+    transition: transform 85ms ease-in;
+
+    &:hover {
+        margin-left: 12px;
+    }
+
+    span {
+        margin-left: 4px;
+    }
+`
+

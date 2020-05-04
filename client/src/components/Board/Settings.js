@@ -3,10 +3,14 @@ import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Dialog from '@material-ui/core/Dialog';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { IconContext } from 'react-icons';
+import { FaCheck } from 'react-icons/fa';
 
-import '../../css/Settings.css';
+import { 
+    StyledDialogOverlay, StyledDialogWrapper, StyledDialogHeader, StyledDialogContent, StyledDialogTitle,
+    StyledH2, StyledSubmit, StyledUList, StyledBoardOption, StyledBoardTile, StyledBoardTileDetails, StyledBoardTileDetailsName,
+    StyledIcon
+} from '../../styles';
 
 import {
     actionSaveSelectedBoards,
@@ -34,7 +38,7 @@ class Settings extends Component {
             .then(({ jwtToken, boardIds }) => {
                 sessionService.saveUser({ jwtToken, boardIds: this.state.selectedBoardIds });
             }).catch((error) => {
-                console.error(error);
+                sessionService.saveUser({ jwtToken: '', boardIds: this.state.selectedBoardIds });
             });
 
         window.location.reload(false);
@@ -68,48 +72,58 @@ class Settings extends Component {
             }
 
             return (
-                <li className="board-option" key={index} onClick={() => this.handleClickBoard(board)}>
-                    <button className="board-tile" style={ style } >
-                        <div className="board-tile-details">
-                            <div className="board-tile-details-name">
+                <StyledBoardOption
+                    key={index}
+                    onClick={() => this.handleClickBoard(board)}
+                >
+                    <StyledBoardTile style={style}>
+                        <StyledBoardTileDetails>
+                            <StyledBoardTileDetailsName>
                                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', WebkitBoxOrient: 'vertical', display: '-webkit-box', WebkitLineClamp: 2 }}>{board.name}</div>
+                            </StyledBoardTileDetailsName>
+                            <div>
+                                {   this.state.selectedBoardIds && this.state.selectedBoardIds.includes(board.id) &&
+                                    <StyledIcon className="icon-sm board-selected-icon">
+                                        <IconContext.Provider value={{ color: '#fff', size: '12px' }}>
+                                            <FaCheck />
+                                        </IconContext.Provider>
+                                    </StyledIcon>
+                                }
                             </div>
-                            <div className="board-tile-details-sub-container">
-                                <span className="board-tile-options">
-                                    <span className={"icon-sm icon-check board-selectable-icon " + (this.state.selectedBoardIds && this.state.selectedBoardIds.includes(board.id) ? ' ' : 'hidden')}>
-                                        <FontAwesomeIcon icon={faCheck} />
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                    </button>    
-                </li>
+                        </StyledBoardTileDetails>
+                    </StyledBoardTile>
+                </StyledBoardOption>
             );
         })
     };
 
     render = () => {
         return (
-            <Dialog aria-labelledby="settings" open={this.props.isOpen} onClick={this.handleClose}>
-                <div className="window-overlay">
-                    <div className="window">
-                        <div className="card-detail-window">
-                            <div className="window-header">
-                                <div className="window-title">
-                                    <h2 className="card-detail-title">Settings</h2>
-                                </div>
-                            </div>
-                            <div className="window-main-col full-width padding-0">
-                                <div className="u-gutter">
-                                    <ul className="board-options">
-                                        {this.renderBoardOptions()}
-                                    </ul>
-                                    <input className="primary wide js-submit" type="submit" value="Save" onClick={this.handleSave}/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <Dialog 
+                aria-labelledby="settings" 
+                disableEnforceFocus={true}
+                onClick={this.handleClose}
+                open={this.props.isOpen}
+            >
+                <StyledDialogOverlay className="window-overlay">
+                    <StyledDialogWrapper>
+                        <StyledDialogHeader>
+                            <StyledDialogTitle>
+                                <StyledH2 className="detail-title">Settings</StyledH2>
+                            </StyledDialogTitle>
+                        </StyledDialogHeader>
+                        <StyledDialogContent className="settings">
+                            <StyledUList className="board-options">
+                                {this.renderBoardOptions()}
+                            </StyledUList>
+                        <StyledSubmit
+                            className="primary wide"
+                            onClick={this.handleSave}
+                            value="Save"
+                        />
+                        </StyledDialogContent>
+                    </StyledDialogWrapper>
+                </StyledDialogOverlay>
             </Dialog>
         );
     };

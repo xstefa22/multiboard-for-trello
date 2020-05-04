@@ -4,7 +4,10 @@ import config from '../config.js';
 import { sessionService } from 'redux-react-session';
 import jwt from 'jsonwebtoken';
 
-import '../css/LoginForm.css';
+import {
+    StyledInnerSection, StyledSectionWrapper, StyledAccountForm, StyledH1, StyledInput,
+    StyledSubmit, StyledForm, StyledDivider, StyledFormLink, StyledLink
+} from '../styles';
 
 
 const { authorizeURL, appName, scope, expiration } = config;
@@ -66,32 +69,75 @@ export default class RegisterForm extends Component {
     render = () => {
         return (
             <React.Fragment>
-                <section className="inner-section">
-                    <div className="section-wrapper quick-switch">
-                        <div className="layout-twothirds-center account-form">
-                            <h1>Register to Trello Multiboard</h1>
-                            <div className="login-password-container">
-                                <form id="register-form" onSubmit={this.handleSubmit}>
-                                    <div className="login-password-container-email">
-                                        <div className="email-password">
-                                            <div className="hide-when-two-factor">
-                                                <input required type="text" name="username" id="username" className="form-field" autoCorrect="off" spellCheck="false" autoCapitalize="off" autoFocus="autofocus" placeholder="Enter username (same as your Trello username)" onChange={(event) => this.setState({ usernameVal: event.target.value })} value={this.state.usernameVal} />
-                                                <input required type="text" name="key" id="key" className="form-field" autoComplete="off" autoCorrect="off" spellCheck="false" autoCapitalize="off" placeholder="Enter your API key" onChange={(event) => this.setState({ keyVal: event.target.value })} value={this.state.keyVal} />
-                                                <input required type="text" name="secret" id="secret" className="form-field" autoComplete="off" autoCorrect="off" spellCheck="false" autoCapitalize="off" placeholder="Enter your OAuth Secret" onChange={(event) => this.setState({ secretVal: event.target.value })} value={this.state.secretVal} />
-                                                <input required type="password" name="password" id="password" className="form-field" placeholder="Enter password" onChange={(event) => this.setState({ passwordVal: event.target.value })} value={this.state.passwordVal} />
-                                            </div>
-                                        </div>
-                                        <button type="submit" className='button account-button button-green btn btn-success btn-register'>Register</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <hr />
-                            <span className="bottom-form-link">
-                                <a href="/user/login">Already have an account? Log In</a>
-                            </span>
-                        </div>
-                    </div>
-                </section>
+                <StyledInnerSection>
+                    <StyledSectionWrapper>
+                        <StyledAccountForm>
+                            <StyledH1>Register to Multiboard for Trello</StyledH1>
+                            <StyledForm 
+                                id="registerForm" 
+                                onSubmit={this.handleSubmit}
+                            >
+                                <StyledInput
+                                    required
+                                    name="username"
+                                    id="username"
+                                    className="form-field"
+                                    autoCorrect="off"
+                                    spellCheck="false"
+                                    autoCapitalize="off"
+                                    autoFocus="autofocus"
+                                    placeholder="Enter username (same as your Trello username)" 
+                                    onChange={(event) => this.setState({ usernameVal: event.target.value })} 
+                                    value={this.state.usernameVal}
+                                />
+                                <StyledInput 
+                                    required
+                                    name="key"
+                                    id="key"
+                                    className="form-field"
+                                    autoComplete="off" 
+                                    autoCorrect="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
+                                    placeholder="Enter your API key" 
+                                    onChange={(event) => this.setState({ keyVal: event.target.value })} 
+                                    value={this.state.keyVal} 
+                                />
+                                <StyledInput 
+                                    required 
+                                    name="secret" 
+                                    id="secret" 
+                                    className="form-field" 
+                                    autoComplete="off" 
+                                    autoCorrect="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
+                                    placeholder="Enter your OAuth Secret" 
+                                    onChange={(event) => this.setState({ secretVal: event.target.value })} 
+                                    value={this.state.secretVal} 
+                                />
+                                <StyledInput 
+                                    required 
+                                    type="password" 
+                                    name="password" 
+                                    id="password" 
+                                    className="form-field" 
+                                    placeholder="Enter password" 
+                                    onChange={(event) => this.setState({ passwordVal: event.target.value })} 
+                                    value={this.state.passwordVal} 
+                                />
+                                <StyledSubmit
+                                    className="primary full mod-account"
+                                    value="Create an account"
+                                />
+                            </StyledForm>
+                            <StyledDivider />
+                            <StyledFormLink className="bottom-form-link">
+                                <StyledLink href="/user/login">Already have an account? Log In</StyledLink>
+                            </StyledFormLink>
+                            </StyledAccountForm>
+                    </StyledSectionWrapper>
+                </StyledInnerSection>
             </React.Fragment>
         );
     };
