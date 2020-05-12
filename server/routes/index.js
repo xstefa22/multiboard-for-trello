@@ -1,4 +1,4 @@
-import config from '../config.js';
+import config from '../../client/src/config.js';
 const User = require('../db/User.js');
 const OAuth = require('oauth').OAuth;
 const url = require('url');

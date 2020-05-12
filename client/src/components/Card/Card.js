@@ -111,6 +111,8 @@ class Card extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
+        boards: state.dataReducer.boards,
+        cards: state.dataReducer.cards,
         customLists: state.dataReducer.customLists,
     };
 }

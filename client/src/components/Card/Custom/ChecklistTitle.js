@@ -20,6 +20,7 @@ class ChecklistTitle extends Component {
         this.handleComposer = this.handleComposer.bind(this);
         this.handleOutsideClick = this.handleOutsideClick.bind(this);
         this.handleEditChecklist = this.handleEditChecklist.bind(this);
+        this.isAnyCheckItemComplete = this.isAnyCheckItemComplete.bind(this);
 
         this.state = {
             clickedOn: false,
@@ -59,6 +60,18 @@ class ChecklistTitle extends Component {
         this.handleComposer(true);
     };
 
+    isAnyCheckItemComplete = () => {
+        let isAnyComplete = false;
+
+        this.props.data.checkItems.map((item) => {
+            if (item.state === "complete") {
+                isAnyComplete = true;
+            }
+        });
+
+        return isAnyComplete;
+    };
+
     render = () => {
         return (
             <StyledCheckListTitle>
@@ -71,20 +84,22 @@ class ChecklistTitle extends Component {
                             {this.props.data.name}
                         </StyledH3>
                         <StyledCheckListOptions>
-                            { this.props.completedItemsHidden ? 
-                                <StyledButton 
-                                    className="subtle"
-                                    onClick={this.props.handleHideItems}
-                                >
-                                    Show completed items
-                                </StyledButton>
-                            :
-                                <StyledButton
-                                    className="subtle"
-                                    onClick={this.props.handleHideItems}
-                                >
-                                    Hide completed items
-                                </StyledButton>
+                            { this.props.data.checkItems.length > 0 && this.isAnyCheckItemComplete() &&
+                                (this.props.completedItemsHidden  ? 
+                                    <StyledButton 
+                                        className="subtle"
+                                        onClick={this.props.handleHideItems}
+                                    >
+                                        Show completed items
+                                    </StyledButton>
+                                :
+                                    <StyledButton
+                                        className="subtle"
+                                        onClick={this.props.handleHideItems}
+                                    >
+                                        Hide completed items
+                                    </StyledButton>
+                                )
                             }
                             <StyledButton
                                 className="subtle"

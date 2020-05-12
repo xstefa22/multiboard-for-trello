@@ -13,6 +13,8 @@ import 'react-day-picker/lib/style.css';
 import dateFnsFormat from 'date-fns/format';
 import dateFnsParse from 'date-fns/parse';
 import parseISO from 'date-fns/parseISO';
+import dayjs from 'dayjs';
+import format from 'date-fns/fp/format';
 
 import DayPickerNavbar from './DayPickerNavbar';
 import DayPickerCaption from './DayPickerCaption';
@@ -20,7 +22,7 @@ import DayPickerCaption from './DayPickerCaption';
 import {
     actionCardActionMove, actionCardActionCopy, actionCardActionArchive, actionLabelCreate,
     actionLabelEdit, actionCardUpdate, actionChecklistRemove, actionChecklistItemConvert,
-    actionChecklistItemRemove, actionChecklistCreate,
+    actionChecklistItemRemove, actionChecklistCreate, actionLabelRemove,
 } from '../../actions';
 
 import {
@@ -45,6 +47,8 @@ class CustomPopover extends Component {
         this.handleCardCopy = this.handleCardCopy.bind(this);
         this.handleOnChange = this.handleOnChange.bind(this);
         this.getInputValue = this.getInputValue.bind(this);
+        this.setTimeValue = this.setTimeValue.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
 
         this.state = {
             selectedBoardId: this.props.data.idBoard,
@@ -62,6 +66,7 @@ class CustomPopover extends Component {
 
             selectedDay: (this.props.data.due ? parseISO(this.props.data.due) : new Date()),
             selectedMonth: new Date(new Date().getFullYear(), new Date().getMonth()),
+            selectedTime: (this.props.data.due ? dayjs(this.props.data.due).format('h:mm A').toString() : ''),
         }
     };
 
@@ -77,8 +82,10 @@ class CustomPopover extends Component {
 
     handleCardDueDate = () => {
         const { selectedDay } = this.state;
+        
+        const timeString = dayjs(dayjs().format('YYYY-MM-DD') + ' ' + this.state.selectedTime).subtract(dayjs().utcOffset(), 'minute').format('HH:mm:ss.SSS').toString();
+        const due = dateFnsFormat(selectedDay, 'yyyy-MM-dd') + 'T' + timeString + 'Z';
 
-        const due = dateFnsFormat(selectedDay, 'yyyy-MM-dd') + 'T00:00:00.000Z';
         this.props.actionCardUpdate(this.props.data, { due }, true);
     };
 
@@ -107,6 +114,8 @@ class CustomPopover extends Component {
             selectedLabelColor: null,
             labelNameValue: '',
         });
+
+        this.props.setAction('labels');
     };
 
     // Handles editing existing label
@@ -121,6 +130,8 @@ class CustomPopover extends Component {
             labelToEdit: null,
             selectedLabels: [...this.props.data.labels],
         });
+
+        this.props.setAction('labels');
     };
 
     // Handles moving card
@@ -221,6 +232,11 @@ class CustomPopover extends Component {
                 this.props.onClose();
                 break;
             }
+            case 'editLabel': {
+                this.props.actionLabelRemove(this.state.labelToEdit);
+                this.props.setAction('labels');
+                break;
+            }
             default: break;
         }
     };
@@ -298,7 +314,7 @@ class CustomPopover extends Component {
         return {
             checklistDelete: 'Delete Checklist',
             dueDate: 'Remove',
-            editLabel: 'Remove',
+            editLabel: 'Delete',
             null: '',
         }[this.props.action];
     }
@@ -380,8 +396,20 @@ class CustomPopover extends Component {
         return dateFnsFormat(date, format, { locale });
     };
 
-     // Renders option for board select when moving/copying card
-     renderBoardOptions = () => {
+    setTimeValue = (value = this.state.selectedTime) => {
+        const selectedTime = dayjs().format('YYYY-MM-DD') + ' ' + value;
+
+        this.setState({ selectedTime: value && dayjs(selectedTime).isValid() ? dayjs(selectedTime).format('h:mm A').toString() : '' });
+    }
+
+    handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            this.setTimeValue(event.target.value);
+        }
+    }
+
+    // Renders option for board select when moving/copying card
+    renderBoardOptions = () => {
         return this.props.boards.map((board) => {
             return <option key={board.id} value={board.id} >{board.name}</option>;
         });
@@ -411,7 +439,7 @@ class CustomPopover extends Component {
     renderLabelList = () => {
         const labels = this.props.labels.filter((label) => label.idBoard === this.props.data.idBoard);
 
-        return labels.map((label) => {
+        return labels.map((label, index) => {
             return (
                 <StyledUListItem key={label.id}>
                     <StyledIcon 
@@ -564,6 +592,10 @@ class CustomPopover extends Component {
                                                     <input 
                                                         placeholder="Enter time"
                                                         tabIndex="102"
+                                                        onBlur={() => this.setTimeValue()}
+                                                        onChange={(e) => this.setState({ selectedTime: e.target.value })}
+                                                        onKeyDown={this.handleKeyDown}
+                                                        value={this.state.selectedTime}
                                                     />
                                                 </StyledDatePickerLabel>
                                             </StyledDatePickerSelect>
@@ -624,7 +656,7 @@ class CustomPopover extends Component {
                                                 <StyledSelectLabel>Position</StyledSelectLabel>
                                                 <StyledSelectValue>{this.state.selectedPos}</StyledSelectValue>
                                                 <StyledSelect
-                                                    onChange={(e) => this.setState({ selectedPos: e.target.value })}>
+                                                    onChange={(e) => this.setState({ selectedPos: e.target.value })}
                                                     value={this.state.selectedPos} 
                                                 >
                                                     <StyledOptGroup label="Position">
@@ -732,6 +764,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
     actionCardActionArchive, actionCardActionMove, actionCardActionCopy,
     actionLabelCreate, actionLabelEdit, actionCardUpdate, actionChecklistRemove,
     actionChecklistItemConvert, actionChecklistItemRemove, actionChecklistCreate,
+    actionLabelRemove, 
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(CustomPopover);

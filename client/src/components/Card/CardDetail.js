@@ -158,7 +158,8 @@ class CardDetail extends Component {
     };
 
     handleCardRemove = (event) => {
-        this.props.actionCardActionDelete();
+        this.props.actionCardActionDelete(this.props.data);
+        this.props.onClose();
     };
 
     handleClick = (event, action) => {
@@ -413,6 +414,7 @@ class CardDetail extends Component {
                     action={this.state.action}
                     anchorElement={this.state.anchorElement}
                     data={this.props.data}
+                    index={this.props.index}
                     onClose={this.handlePopOverClose}
                     setAction={this.setAction}
                 />

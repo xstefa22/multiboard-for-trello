@@ -331,6 +331,7 @@ export const StyledInput = styled.input.attrs({ type: props => props.type || 'te
         transition-property: background-color,border-color,box-shadow;
         transition-duration: 85ms;
         transition-timing-function: ease;
+        width: 100%;
 
         &:hover {
             background-color: #ebecf0;
@@ -1499,13 +1500,15 @@ export const StyledPopoverTitle = styled.span`
     position: relative;
     text-overflow: ellipsis;
     white-space: nowrap;
-    z-index: 1;
+`
+
+export const StyledH4 = styled.h4`
 `
 
 export const StyledPopoverSection = styled.div`
     margin-top: 12px;
 
-    h4 {
+    ${StyledH4} {
         font-weight: 700;
         color: #5e6c84;
         font-size: 12px;
@@ -1513,10 +1516,11 @@ export const StyledPopoverSection = styled.div`
         margin-top: 12px;
         margin-bottom: 4px;
         display: block;
-    }
-`
 
-export const StyledH4 = styled.h4`
+        &:first-child {
+            margin-top: 4px;
+        }
+    }
 `
 
 export const StyledUList = styled.ul`
@@ -1621,6 +1625,12 @@ export const StyledDatePickerLabel = styled.label`
             box-shadow: inset 0 0 0 2px #0079bf;
         }
     }
+
+    .DayPickerInput {
+        .DayPickerInput-OverlayWrapper {
+            display: none !important;
+        }
+    }
 `
 
 export const StyledPickers = styled.div`
@@ -1710,11 +1720,6 @@ export const StyledPickers = styled.div`
         z-index: 999;
     }
 
-    .DayPickerInput {
-        .DayPickerInput-OverlayWrapper {
-            display: none !important;
-        }
-    }
 
     ${StyledButton} {
         float: left;

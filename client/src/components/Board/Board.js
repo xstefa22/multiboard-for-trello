@@ -14,7 +14,7 @@ import NavBar from './NavBar';
 
 import {
     actionFetchBoards, actionFetchLists, actionFetchCards, actionCreateCustomLists, actionCardMove, actionListMove, actionFetchLabels, actionSetAuth, actionRemoveAuth,
-    actionUpdateReceived, actionFetchUserAndCreateWebhook, actionSetSelectedBoards, actionFetchChecklists
+    actionUpdateReceived, actionFetchUserAndCreateWebhook, actionSetSelectedBoards, actionFetchChecklists,actionSetOneTime
 } from '../../actions';
 
 import { StyledBoardWrapper } from '../../styles';
@@ -23,6 +23,8 @@ import { StyledBoardWrapper } from '../../styles';
 class Board extends Component {
     constructor(props) {
         super(props);
+
+        this.onDragEnd = this.onDragEnd.bind(this);
 
         this.state = {
             ready: false,
@@ -48,9 +50,12 @@ class Board extends Component {
                 if (config.dev){
                     this.props.actionSetAuth(config.username, config.apiKey, config.token);
                 } else {
-                    const { username, apiKey, token } = jwt.decode(jwtToken);
+                    const { username, apiKey, token, oneTime } = jwt.decode(jwtToken);
 
                     this.props.actionSetAuth(username, apiKey, token);
+                    if (oneTime) {
+                        this.props.actionSetOneTime();
+                    }
                 }
             }).catch((error) => {
                 this.props.history.push('/user/login');
@@ -59,17 +64,21 @@ class Board extends Component {
         
         // Listens to server sending trello webhook updates
         if (!config.onlyClient && this.props.loggedIn) {
-            const token = jwt.sign({ username: this.props.username }, this.props.username, { expiresIn: '2h' });
+            const token = jwt.sign({ username: this.props.username, oneTime: this.props.oneTime }, this.props.username, { expiresIn: '2h' });
             const socket = socketIOClient(config.server);
             socket.on('connect', () => {
                 socket.emit('authorization', token, (answer) => {
                 });
-            })
+            });
             socket.on('update', (data) => {
-                if (data.username === this.props.username) {
+                if (data.model.username === this.props.username) {
                     this.props.actionUpdateReceived(data);
                 }
             });
+            socket.on('disconnect', () => {
+                socket.emit('deauthorization', token, (answer) => {
+                });
+            })
         }
     };
 
@@ -136,7 +145,7 @@ class Board extends Component {
             return <Redirect to="/user/login" />;
         }
 
-        if (!this.state.ready) return <div>Receiving Data...</div>;
+        if (!this.state.ready) return <div></div>;
 
         return (
             <StyledBoardWrapper>
@@ -173,12 +182,14 @@ const mapStateToProps = (state) => {
         boards: state.dataReducer.boards,
         boardsReceived: state.dataReducer.boardsReceived,
         cardsReceived: state.dataReducer.cardsReceived,
+        cards: state.dataReducer.cards,
         lists: state.dataReducer.lists,
         listsReceived: state.dataReducer.listsReceived,
         customLists: state.dataReducer.customLists,
         customListsCreated: state.dataReducer.customListsCreated,
         selectedBoardIds: state.dataReducer.selectedBoardIds,
         username: state.authReducer.username,
+        oneTime: state.authReducer.oneTime,
     };
 }
 
@@ -186,7 +197,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
     actionFetchBoards, actionFetchLists, actionFetchCards, actionCreateCustomLists,
     actionCardMove, actionListMove, actionFetchLabels, actionSetAuth, actionRemoveAuth,
     actionFetchUserAndCreateWebhook, actionUpdateReceived, actionSetSelectedBoards,
-    actionFetchChecklists,
+    actionFetchChecklists, actionSetOneTime
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Board);

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { sessionService } from 'redux-react-session';
 import jwt from 'jsonwebtoken';
 
-import { actionSetAuth } from '../actions';
+import { actionSetAuth, actionSetOneTime } from '../actions';
 
 import {
     StyledInnerSection, StyledSectionWrapper, StyledAccountForm, StyledH1, StyledInput,
@@ -28,9 +28,13 @@ class OneTimeLogin extends Component {
     // Checks if user's data are stored in session, if true, user is logged in and redirected to board
     componentDidMount = () => {
         sessionService.loadUser()
-            .then(({ jwtToken }) => {
-                const { username, apiKey, token } = jwt.decode(jwtToken);
+            .then(({ jwtToken, boardIds }) => {
+                const { username, apiKey, token, oneTime } = jwt.decode(jwtToken);
+                this.props.actionSetSelectedBoards(boardIds);
                 this.props.actionSetAuth(username, apiKey, token);
+                if (oneTime) {
+                    this.props.actionSetOneTime();
+                }
 
                 this.props.history.push('/');
             }).catch((error) => { });
@@ -40,8 +44,9 @@ class OneTimeLogin extends Component {
         event.preventDefault();
 
         const { usernameVal, apiKeyVal, tokenVal } = this.state;
-        this.props.actionSetAuth(usernameVal, apiKeyVal, tokenVal); 
-        const payload = { username: usernameVal, apiKey: apiKeyVal, token: tokenVal };
+        this.props.actionSetAuth(usernameVal, apiKeyVal, tokenVal);
+        this.props.actionSetOneTime();
+        const payload = { username: usernameVal, apiKey: apiKeyVal, token: tokenVal, oneTime: true };
         const secret = usernameVal;
         const jwtToken = jwt.sign(payload, secret, { expiresIn: '2h' });
         sessionService.saveUser({ jwtToken });
@@ -66,6 +71,7 @@ class OneTimeLogin extends Component {
                                     id="username" 
                                     className="form-field" 
                                     autoCorrect="off" 
+                                    autoComplete="off" 
                                     spellCheck="false" 
                                     autoCapitalize="off" 
                                     autoFocus="autofocus" 
@@ -77,6 +83,10 @@ class OneTimeLogin extends Component {
                                     required
                                     name="apiKey" 
                                     id="apiKey" 
+                                    autoCorrect="off" 
+                                    autoComplete="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
                                     className="form-field" 
                                     placeholder="Enter your API key" 
                                     onChange={(event) => this.setState({ apiKeyVal: event.target.value })} 
@@ -86,6 +96,10 @@ class OneTimeLogin extends Component {
                                     required
                                     name="token" 
                                     id="token" 
+                                    autoCorrect="off" 
+                                    autoComplete="off" 
+                                    spellCheck="false" 
+                                    autoCapitalize="off" 
                                     className="form-field" 
                                     placeholder="Enter token" 
                                     onChange={(event) => this.setState({ tokenVal: event.target.value })} 
@@ -114,7 +128,7 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
-    actionSetAuth,
+    actionSetAuth, actionSetOneTime,
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(OneTimeLogin);

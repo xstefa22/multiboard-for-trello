@@ -1,7 +1,8 @@
-import { SET_AUTH, REMOVE_AUTH } from '../actions/actionTypes';
+import { SET_AUTH, REMOVE_AUTH, ONE_TIME_AUTH } from '../actions/actionTypes';
 
 const initialState = {
 	loggedIn: false,
+	oneTime: false,
 
 	username: null,
 	key: null,
@@ -26,6 +27,13 @@ const authReducer = (state = initialState, action) => {
 
 		case REMOVE_AUTH: {
 			return initialState;
+		}
+
+		case ONE_TIME_AUTH: {
+			return {
+				...state,
+				oneTime: true,
+			}
 		}
 
 		default: {

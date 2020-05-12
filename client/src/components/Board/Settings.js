@@ -28,7 +28,7 @@ class Settings extends Component {
     }
 
     handleClose = (event) => {
-        if (event.target.className === "window-overlay") {
+        if (event.target.classList.contains("window-overlay")) {
             this.props.onClose();
         }
     };
@@ -101,7 +101,6 @@ class Settings extends Component {
         return (
             <Dialog 
                 aria-labelledby="settings" 
-                disableEnforceFocus={true}
                 onClick={this.handleClose}
                 open={this.props.isOpen}
             >

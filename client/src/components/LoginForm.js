@@ -5,7 +5,7 @@ import axios from 'axios';
 import { sessionService } from 'redux-react-session';
 import jwt from 'jsonwebtoken';
 
-import { actionSetAuth, actionSetSelectedBoards } from '../actions';
+import { actionSetAuth, actionSetSelectedBoards, actionSetOneTime } from '../actions';
 import config from '../config.js';
 
 import {
@@ -34,11 +34,14 @@ class LoginForm extends Component {
             this.props.history.push('/');
         } else {
             sessionService.loadUser()
-                .then(({ jwtToken }) => {
-                    const { username, apiKey, token } = jwt.decode(jwtToken);
-
+                .then(({ jwtToken, boardIds }) => {
+                    const { username, apiKey, token, oneTime } = jwt.decode(jwtToken);
+                    this.props.actionSetSelectedBoards(boardIds ? boardIds : null);
                     this.props.actionSetAuth(username, apiKey, token);
-
+                    if (oneTime) {
+                        this.props.actionSetOneTime();
+                    }
+                    
                     this.props.history.push('/');
                 }).catch((error) => {
             });
@@ -85,7 +88,8 @@ class LoginForm extends Component {
                                     name="username" 
                                     id="username" 
                                     className="form-field" 
-                                    autoCorrect="off" 
+                                    autoCorrect="off"
+                                    autoComplete="off" 
                                     spellCheck="false" 
                                     autoCapitalize="off" 
                                     autoFocus="autofocus" 
@@ -99,6 +103,7 @@ class LoginForm extends Component {
                                     name="password" 
                                     id="password" 
                                     className="form-field" 
+                                    autoComplete="off"
                                     placeholder="Enter password" 
                                     onChange={(event) => this.setState({ passwordVal: event.target.value })} 
                                     value={this.state.passwordVal} 
@@ -129,7 +134,7 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
-    actionSetAuth, actionSetSelectedBoards
+    actionSetAuth, actionSetSelectedBoards, actionSetOneTime
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(LoginForm);

@@ -19,6 +19,8 @@ import {
     WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST, WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, 
     WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
     FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS, WEBHOOK_REMOVE_MEMBER_FROM_BOARD,
+    LABEL_REMOVE, LABEL_REMOVE_SUCCESS, LABEL_REMOVE_FAILURE, WEBHOOK_CREATE_CHECKITEM,
+    FETCH_CARD_SUCCESS, FETCH_CARD_FAILURE, UPDATE_CHECKITEMS_SUCCESS, UPDATE_CHECKITEMS_FAILURE,
 } from '../actions/actionTypes';
 
 
@@ -47,8 +49,7 @@ const initialState = {
 };
 
 class customList {
-    constructor(name, index) {
-        this.index = index;
+    constructor(name) {
         this.name = name;
     }
 };
@@ -66,22 +67,28 @@ const dataReducer = (state = initialState, action) => {
             const { response } = payload;
 
             const boards = [...response.data];
-            
+            let selectedBoardIds = [...state.selectedBoardIds];
+
+            if (selectedBoardIds.length === 0) {
+                selectedBoardIds = boards.map((board) => board.id);
+            }
+
             return {
                 ...state,
                 boards,
-                boardsReceived: true
+                boardsReceived: true,
+                selectedBoardIds,
             }
         }
 
         case SET_SELECTED_BOARDS: {
             const { selectedBoardIds } = payload;
 
-            let boardIds = [...selectedBoardIds];
+            let boardIds = [...state.selectedBoardIds];
+            const boards = [...state.boards];
 
-            console.log('Boards selected');
-            if (!selectedBoardIds){
-                boardIds = state.boards.map((board) => board.id);
+            if (selectedBoardIds.length === 0){
+                boardIds = boards.map((board) => board.id);
             }
 
             return {
@@ -220,8 +227,8 @@ const dataReducer = (state = initialState, action) => {
             const lists = state.lists.filter((l) => !l.closed);
             const listsNames = getUniqueListsNames(lists);
 
-            listsNames.forEach((name, index) => {
-                customLists.push(new customList(name, index));
+            listsNames.forEach((name) => {
+                customLists.push(new customList(name));
             });
 
             return {
@@ -361,7 +368,8 @@ const dataReducer = (state = initialState, action) => {
             const archivedCards = [...state.archivedCards];
             const cards = [...state.cards];
 
-            cards.filter((c) => c.id !== card.id);
+            const index = cards.indexOf(card);
+            cards.splice(index, 1);
 
             archivedCards.push(card);
 
@@ -385,7 +393,8 @@ const dataReducer = (state = initialState, action) => {
 
             const cards = [...state.cards];
 
-            cards.filter((c) => c.id !== card.id);
+            const index = cards.indexOf(card);
+            cards.splice(index, 1);
 
             return {
                 ...state,
@@ -524,6 +533,41 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case LABEL_EDIT_FAILURE: {
+            return state;
+        }
+
+        case LABEL_REMOVE: {
+            const { label } = payload;
+
+            const labels = [...state.labels];
+            const cards = [...state.cards];
+
+            let index = labels.indexOf(label);
+            labels.splice(index, 1);
+
+            cards.map((card) => {
+                if (card.idLabels.includes(label.id)) {
+                    index = card.idLabels.indexOf(label.id);
+                    card.idLabels.splice(index, 1);
+                }
+                if (card.labels.includes(label)) {
+                    index = card.labels.indexOf(label);
+                    card.labels.splice(index, 1);
+                }
+            });
+
+            return {
+                ...state,
+                cards,
+                labels,
+            }
+        }
+
+        case LABEL_REMOVE_SUCCESS: {
+            return state;
+        }
+
+        case LABEL_REMOVE_FAILURE: {
             return state;
         }
 
@@ -762,11 +806,48 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case FETCH_CHECKITEMS_FAILURE: {
-            const { error } = payload;
+            return state;
+        }
+
+        case FETCH_CARD_SUCCESS: {
+            const { data } = payload;
+
+            const cards = [...state.cards];
+
+            const exists = cards.find((c) => c.id === data.id);
+            if (!exists) {
+                cards.push(data);
+            }
 
             return {
-                ...state
-            }
+                ...state,
+                cards,
+            };
+        }
+
+        case FETCH_CARD_FAILURE: {
+            return state;
+        }
+
+        case FETCH_CHECKITEMS_SUCCESS: {
+            const { data } = payload;
+
+            const checklists = [...state.checklists];
+
+            checklists.map((l) => {
+                if (l.id === data.id) {
+                    l.checkItems = [...data.checkItems];
+                }
+            });
+
+            return {
+                ...state,
+                checklists,
+            };
+        }
+
+        case FETCH_CHECKITEMS_FAILURE: {
+            return state;
         }
 
         // Webhook functions
@@ -776,10 +857,13 @@ const dataReducer = (state = initialState, action) => {
             const checklists = [...state.checklists];
             const cards = [...state.cards];
 
-            checklists.push({ ...checklist, idBoard: board.id, idCard: card.id, checkItems: [] });
-            const cardToUpdate = cards.find((c) => c.id === card.id);
-            const index = cards.indexOf(cardToUpdate);
-            cards[index].idChecklists.push(checklist.id);
+            const exists = checklists.find((l) => l.id === checklist.id);
+            if (!exists) {
+                checklists.push({ ...checklist, idBoard: board.id, idCard: card.id, checkItems: [] });
+                const cardToUpdate = cards.find((c) => c.id === card.id);
+                const index = cards.indexOf(cardToUpdate);
+                cards[index].idChecklists.push(checklist.id);
+            }
 
             return {
                 ...state,
@@ -795,8 +879,14 @@ const dataReducer = (state = initialState, action) => {
 
             cards.map((c) => {
                 if (c.id === card.id) {
-                    c.labels.push({ ...label, idBoard: board.id });
-                    c.idLabels.push(label.id);
+                    let exists = c.labels.find((l) => l.id === label.id);
+                    if (!exists) {
+                        c.labels.push({ ...label, idBoard: board.id });
+                    }
+                    exists = c.idLabels.includes(label.id);
+                    if (!exists) {
+                        c.idLabels.push(label.id);
+                    }
                 }
             });
 
@@ -806,31 +896,18 @@ const dataReducer = (state = initialState, action) => {
             };
         }
 
-        case WEBHOOK_CONVERT_CHECKITEM_TO_CARD: {
-            const { card, checklist, board, sourceChecklist } = payload;
-
-            const checklists = [...state.checklists];
-
-            const source = checklists.find((l) => l.id === sourceChecklist.id);
-            const destination = checklist.find((l) => l.id === checklist.id);
-            const index = checklists.indexOf(destination);
-            checklists[index].checkItems = [...source.checkItems];
-
-            return {
-                ...state,
-                checklists
-            }
-        }
-
         case WEBHOOK_COPY_CARD: {
             const { card, board, list, sourceCard } = payload;
 
             const cards = [...state.cards];
 
             cards.map((c) => {
-                if (c.id === card.id) {
+                if (c.id === sourceCard.id) {
                     const cardToCopy = { ...c, id: card.id, name: card.name };
-                    cards.push(cardToCopy);
+                    const exists = cards.find((c) => c.id === card.id);
+                    if (!exists) {
+                        cards.push(cardToCopy);
+                    }
                 }
             });
 
@@ -844,8 +921,11 @@ const dataReducer = (state = initialState, action) => {
             const { label, board } = payload;
 
             const labels = [...state.labels];
-
-            labels.push({ ...label, idBoard: board.id });
+            
+            const exists = labels.find((l) => l.id === label.id);
+            if (!exists) {
+                labels.push({ ...label, idBoard: board.id });
+            }
 
             return {
                 ...state,
@@ -859,7 +939,10 @@ const dataReducer = (state = initialState, action) => {
             const lists = [...state.lists];
             const customLists = [...state.customLists];
 
-            lists.push({ ...list, idBoard: board.id });
+            const exists = lists.find((l) => l.id === list.id);
+            if (!exists) {
+                lists.push({ ...list, idBoard: board.id });
+            }
 
             const listExist = customLists.find((l) => l.name === list.name);
             if (!listExist) {
@@ -878,12 +961,34 @@ const dataReducer = (state = initialState, action) => {
 
             const cards = [...state.cards];
 
-            cards.push({ id: card.id, name: card.name, idList: list.id, idBoard: board.id, labels: [], idLabels: [] });
+            const exists = cards.find((c) => c.id === card.id);
+            if (!exists) { 
+                cards.push({ id: card.id, name: card.name, idList: list.id, idBoard: board.id, labels: [], idLabels: [] });
+            }
 
             return {
                 ...state,
                 cards
             };
+        }
+
+        case WEBHOOK_CREATE_CHECKITEM: {
+            const { card, board, checklist, checkItem } = payload;
+
+            const checklists = [...state.checklists];
+            checklists.map((list) => {
+                if (list.id === checklist.id) {
+                    const exists = list.checkItems.find((i) => i.id === checkItem.id);
+                    if (!exists) {
+                        list.checkItems.push(checkItem);
+                    }
+                }
+            });
+
+            return {
+                ...state,
+                checklists,
+            }
         }
 
         case WEBHOOK_UPDATE_CARD: {
@@ -960,11 +1065,11 @@ const dataReducer = (state = initialState, action) => {
 
             const cards = [...state.cards];
 
-            cards.map((c) => {
-                if (c.id === card.id) {
-                    c = { ...c, idBoard: board.id };
-                }
-            });
+            const c = cards.find((c) => c.id === card.id);
+            if (c) {
+                const index = cards.indexOf(c);
+                cards[index] = { ...c, idBoard: board.id, idList: list.id };
+            }
 
             return {
                 ...state,
@@ -980,12 +1085,18 @@ const dataReducer = (state = initialState, action) => {
             const { list, board, sourceBoard, member } = payload;
 
             const lists = [...state.lists];
+            const cards = [...state.cards];
 
-            lists.map((l) => {
-                if (l.id === list.id) {
-                    l = { ...l, idBoard: board.id };
-                }
-            });
+            const l = lists.find((l) => l.id === list.id);
+            if (l) {
+                const index = lists.indexOf(l);
+                lists[index] = { ...l, idBoard: board.id };
+
+                const toUpdate = cards.filter((c) => c.idList === l.id);
+                toUpdate.map((c) => {
+                    c['idBoard'] = board.id;
+                });
+            }
 
             return {
                 ...state,
@@ -1007,11 +1118,15 @@ const dataReducer = (state = initialState, action) => {
                     const labelToRemove = c.labels.find((l) => l.id === label.id);
                     if (labelToRemove) {
                         const index = c.labels.indexOf(labelToRemove);
-                        c.labels.splice(index, 1);
+                        if (index) {
+                            c.labels.splice(index, 1);
+                        }
                     }
 
                     const indexId = c.idLabels.indexOf(label.id);
-                    c.idLabels.splice(indexId, 1);
+                    if (indexId){
+                        c.idLabels.splice(indexId, 1);
+                    }
                 }
             });
 
@@ -1056,7 +1171,7 @@ const dataReducer = (state = initialState, action) => {
 
             cards.map((c) => {
                 if (c.idLabels.includes(label.id)) {
-                    c.label.map((l) => {
+                    c.labels.map((l) => {
                         if (l.id === label.id) {
                             Object.keys(old).forEach((key) => {
                                 l[key] = label[key];
@@ -1084,7 +1199,8 @@ const dataReducer = (state = initialState, action) => {
                 const listWithSameName = lists.find((l) => l.name === list.name);
                 if (!listWithSameName) {
                     const listToRemove = customLists.find((l) => l.name === list.name);
-                    customLists.splice(listToRemove.index, 1);
+                    const index = customLists.indexOf(listToRemove);
+                    customLists.splice(index, 1);
                 }
                 // Renaming list
             } else if (Object.keys(old).includes('name')) {
@@ -1098,12 +1214,14 @@ const dataReducer = (state = initialState, action) => {
                     } else {
                         // List with old name other than one being renamed doesn't exist, renaming existing custom list
                         const listToUpdate = customLists.find((l) => l.name === old.name);
-                        customLists[listToUpdate.index] = { ...listToUpdate, name: list.name };
+                        const index = customLists.indexOf(listToUpdate)
+                        customLists[index] = { ...listToUpdate, name: list.name };
                     }
                 } else {
                     // List with new name exits, removing custom list with old name
                     const listToRemove = customLists.find((l) => l.name === old.name);
-                    customLists.splice(listToRemove.index, 1);
+                    const index = customLists.indexOf(listToRemove);
+                    customLists.splice(index, 1);
                 }
             }
 
@@ -1178,9 +1296,8 @@ const dataReducer = (state = initialState, action) => {
 
             const list = checklists.find((l) => l.id === checklist.id);
             const item = list.checkItems.find((i) => i.id === checkItem.id);
-            const state = item.state === "complete" ? "complete" : "incomplete";
             const index = list.checkItems.indexOf(item);
-            list.checkItems[index] = { ...item, state };
+            list.checkItems[index] = { ...item, state: checkItem.state };
 
             return {
                 ...state,

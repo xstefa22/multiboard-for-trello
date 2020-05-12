@@ -3,7 +3,7 @@ import { withRouter} from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Popover from '@material-ui/core/Popover';
-import config from '../../config';
+import config from '../../config.js';
 
 import Settings from './Settings';
 
@@ -70,7 +70,11 @@ class NavBar extends Component {
                 >
                     <StyledMemberPopover>
                         <StyledMemberPopoverHeader>
-                            <StyledH1>{this.props.member.fullName + " (" + this.props.member.username + ")"}</StyledH1>
+                            { this.props.member &&
+                                <StyledH1>
+                                    { this.props.member.fullName + " (" + this.props.member.username + ")"}
+                                </StyledH1>
+                            }
                         </StyledMemberPopoverHeader>
                         <StyledMemberPopoverContent>
                             <StyledUList>
