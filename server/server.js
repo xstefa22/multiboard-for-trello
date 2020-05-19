@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const cookieParser = require('cookie-parser');
 const app = express();
 const cors = require('cors');
 const low = require('lowdb')
@@ -13,7 +12,6 @@ const db = low(adapter);
 db.defaults({ users: [] }).write();
 
 app.use(express.json());
-app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 
 require('./routes/index')(app);
@@ -34,7 +32,6 @@ io.sockets.on('connection', (socket) => {
     const { id } = data.model;
 
     const user = db.get('users').find({ idMember: id }).value();
-    console.log(user);
     if (user) {
       io.to(user.idSocket).emit('update', data);
     }
@@ -43,13 +40,16 @@ io.sockets.on('connection', (socket) => {
   socket.on('authorization', async (data) => {
     const { idMember } = data;
 
-    db.get('users').push({ idMember, idSocket: socket.id }).write();
-    console.log(db.get('users').value());
+    const user = db.get('users').find({ idMember }).value();
+    if (user) {
+      db.get('users').find({ idMember }).assign({ idSocket: socket.id }).write();
+    } else {
+      db.get('users').push({ idMember, idSocket: socket.id }).write();
+    }
   });
 
   socket.on('disconnect', () => {
     db.get('users').remove({ idSocket: socket.id }).write();
-    console.log(db.get('users').value());
   });
 });
 

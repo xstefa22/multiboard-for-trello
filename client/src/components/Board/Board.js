@@ -40,27 +40,29 @@ class Board extends Component {
             });
 
             this.props.actionFetchBoards();
-            this.props.actionCheckAndCreateWebhook();
-        
-            // Listens to server sending trello webhook updates
-            const socket = socketIOClient(config.server);
-            const data = { idMember: this.props.member.id };
+            if (!config.onlyClient) {
+                this.props.actionCheckAndCreateWebhook();
             
-            socket.on('connect', () => {
-                socket.emit('authorization', data, () => {
+                // Listens to server sending trello webhook updates
+                const socket = socketIOClient(config.server);
+                const data = { idMember: this.props.member.id };
+                
+                socket.on('connect', () => {
+                    socket.emit('authorization', data, () => {
+                    });
                 });
-            });
 
-            socket.on('update', (data) => {
-                if (data.model.id === this.member.id) {
-                    this.props.actionUpdateReceived(data);
-                }
-            });
-
-            socket.on('disconnect', () => {
-                socket.emit('deauthorization', data, () => {
+                socket.on('update', (data) => {
+                    if (data.model.id === this.props.member.id) {
+                        this.props.actionUpdateReceived(data);
+                    }
                 });
-            });
+
+                socket.on('disconnect', () => {
+                    socket.emit('deauthorization', data, () => {
+                    });
+                });
+            }
         }
     };
 

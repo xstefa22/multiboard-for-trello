@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import axios from 'axios';
 import { sessionService } from 'redux-react-session';
-import jwt from 'jsonwebtoken';
 
 import { actionSetAuth, actionSetSelectedBoards } from '../actions';
 import config from '../config.js';
