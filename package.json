@@ -4,17 +4,13 @@
 	"description": "Backend for Trello Multiboard app",
 	"main": "server/server.js",
 	"scripts": {
-		"client-install": "cd client && npm install",
 		"client-build": "cd client && npm run build && cd ..",
-		"start": "node server/server.js",
 		"server": "nodemon -r esm server/server.js",
-		"client": "npm start --prefix client",
-		"dev": "concurrently \"npm run ssr\" \"npm run client\"",
-		"ssr": "nodemon -r esm server/index.js",
-		"all": "npm run client-build && npm run dev"
+		"start": "npm run client-build && npm run server"
 	},
 	"author": "Jakub Stefanisin, xstefa22@stud.fit.vutbr.cz",
-	"license": "ISC",
+	"license": "MIT",
+	"nodemonConfig": { "ext": "js", "ignore": ["db/*"], "delay": "2" },
 	"dependencies": {
 		"@babel/plugin-proposal-class-properties": "^7.8.3",
 		"@babel/preset-react": "^7.9.1",
@@ -26,7 +22,6 @@
 		"@fortawesome/free-solid-svg-icons": "^5.12.1",
 		"@fortawesome/react-fontawesome": "^0.1.9",
 		"@material-ui/core": "^4.9.7",
-		"axion": "^0.1.0",
 		"axios": "^0.19.2",
 		"babel-core": "^6.26.3",
 		"babel-loader": "^8.1.0",
@@ -53,6 +48,7 @@
 		"jsonwebtoken": "^8.5.1",
 		"lodash": "^4.17.15",
 		"logger": "0.0.1",
+		"lowdb": "^1.0.0",
 		"mongoose": "^5.9.5",
 		"morgan": "^1.10.0",
 		"nodemon": "^2.0.1",

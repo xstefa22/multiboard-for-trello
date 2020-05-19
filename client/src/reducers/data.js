@@ -1,7 +1,7 @@
 import {
     FETCH_BOARDS_SUCCESS, FETCH_BOARDS_FAILURE, FETCH_BOARD_SUCCESS, FETCH_BOARD_FAILURE, FETCH_LISTS_SUCCESS,
     FETCH_LISTS_FAILURE, FETCH_CARDS_SUCCESS,
-    FETCH_CARDS_FAILURE, FETCH_LABELS_SUCCESS, FETCH_LABELS_FAILURE, CREATE_CUSTOM_LISTS, USER_RECEIVED_FAILURE,
+    FETCH_CARDS_FAILURE, FETCH_LABELS_SUCCESS, FETCH_LABELS_FAILURE, CREATE_CUSTOM_LISTS,
     CARD_UPDATE, CARD_UPDATE_SUCCESS, CARD_UPDATE_FAILURE, CARD_CREATE, CARD_CREATE_SUCCESS, CARD_CREATE_FAILURE,
     CARD_ACTION_ARCHIVE, CARD_ACTION_ARCHIVE_SUCCESS, CARD_ACTION_ARCHIVE_FAILURE, CARD_ACTION_DELETE,
     CARD_ACTION_DELETE_SUCCESS, CARD_ACTION_DELETE_FAILURE, CARD_ACTION_COPY, CARD_ACTION_COPY_SUCCESS,
@@ -10,17 +10,17 @@ import {
     LABEL_EDIT_FAILURE, WEBHOOK_ADD_LABEL_TO_CARD, WEBHOOK_COPY_BOARD, WEBHOOK_COPY_CARD, WEBHOOK_CREATE_BOARD, WEBHOOK_CREATE_CARD,
     WEBHOOK_CREATE_LABEL, WEBHOOK_DELETE_CARD, WEBHOOK_DELETE_LABEL, WEBHOOK_MOVE_CARD_FROM_BOARD, WEBHOOK_MOVE_CARD_TO_BOARD,
     WEBHOOK_MOVE_LIST_FROM_BOARD, WEBHOOK_MOVE_LIST_TO_BOARD, WEBHOOK_REMOVE_LABEL_FROM_CARD, WEBHOOK_UPDATE_BOARD,
-    WEBHOOK_UPDATE_CARD, WEBHOOK_UPDATE_LABEL, WEBHOOK_UPDATE_LIST, WEBHOOK_CREATE_LIST, USER_RECEIVED, SET_SELECTED_BOARDS,
+    WEBHOOK_UPDATE_CARD, WEBHOOK_UPDATE_LABEL, WEBHOOK_UPDATE_LIST, WEBHOOK_CREATE_LIST, SET_SELECTED_BOARDS,
     FETCH_CHECKLISTS_SUCCESS, FETCH_CHECKLISTS_FAILURE, CHECKLIST_UPDATE, CHECKLIST_UPDATE_FAILURE, CHECKLIST_UPDATE_SUCCESS,
     CHECKLIST_ITEM_UPDATE, CHECKLIST_ITEM_UPDATE_FAILURE, CHECKLIST_ITEM_UPDATE_SUCCESS, CHECKLIST_ITEM_ADD,
     CHECKLIST_ITEM_ADD_SUCCESS, CHECKLIST_ITEM_ADD_FAILURE, CHECKLIST_REMOVE, CHECKLIST_REMOVE_FAILURE, 
     CHECKLIST_REMOVE_SUCCESS, CHECKLIST_ITEM_REMOVE, CHECKLIST_ITEM_REMOVE_SUCCESS, CHECKLIST_ITEM_REMOVE_FAILURE,
-    CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE, WEBHOOK_ADD_CHECKLIST_TO_CARD, WEBHOOK_CONVERT_CHECKITEM_TO_CARD,
-    WEBHOOK_DELETE_CHECKITEM, WEBHOOK_COPY_CHECKLIST, WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, 
+    CHECKLIST_CREATE, CHECKLIST_CREATE_SUCCESS, CHECKLIST_CREATE_FAILURE, WEBHOOK_ADD_CHECKLIST_TO_CARD, 
+    WEBHOOK_DELETE_CHECKITEM, WEBHOOK_REMOVE_CHECKLIST_FROM_CARD, 
     WEBHOOK_UPDATE_CHECKITEM, WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD, WEBHOOK_UPDATE_CHECKLIST,
     FETCH_CHECKITEMS_FAILURE, FETCH_CHECKITEMS_SUCCESS, WEBHOOK_REMOVE_MEMBER_FROM_BOARD,
     LABEL_REMOVE, LABEL_REMOVE_SUCCESS, LABEL_REMOVE_FAILURE, WEBHOOK_CREATE_CHECKITEM,
-    FETCH_CARD_SUCCESS, FETCH_CARD_FAILURE, UPDATE_CHECKITEMS_SUCCESS, UPDATE_CHECKITEMS_FAILURE,
+    FETCH_CARD_SUCCESS, FETCH_CARD_FAILURE, 
 } from '../actions/actionTypes';
 
 
@@ -31,8 +31,6 @@ const initialState = {
     customListsCreated: false,
 
     fetchFailed: false,
-
-    member: null,
 
     boards: [],
     cards: [],
@@ -66,7 +64,7 @@ const dataReducer = (state = initialState, action) => {
         case FETCH_BOARDS_SUCCESS: {
             const { response } = payload;
 
-            const boards = [...response.data];
+            const boards = [...response];
             let selectedBoardIds = [...state.selectedBoardIds];
 
             if (selectedBoardIds.length === 0) {
@@ -111,6 +109,7 @@ const dataReducer = (state = initialState, action) => {
 
             boards = boards.concat(board);
 
+
             return {
                 ...state,
                 boards
@@ -126,10 +125,11 @@ const dataReducer = (state = initialState, action) => {
 
         case FETCH_LISTS_SUCCESS: {
             const { response } = payload;
+
             let lists = [...state.lists];
             // Putting all lists from different boards to one array
-            response.forEach(({ data }) => {
-                lists = lists.concat(data);
+            response.forEach((list) => {
+                lists = lists.concat(list);
             });
 
             return {
@@ -153,8 +153,8 @@ const dataReducer = (state = initialState, action) => {
             const { response } = payload;
             let cards = [...state.cards];
             // Putting all cards from different boards to one array
-            response.forEach(({ data }) => {
-                cards = cards.concat(data);
+            response.forEach((card) => {
+                cards = cards.concat(card);
             });
 
             return {
@@ -178,8 +178,8 @@ const dataReducer = (state = initialState, action) => {
             const { response } = payload;
             let labels = [...state.labels];
             // Putting all labels from different boards to one array
-            response.forEach(({ data }) => {
-                labels = labels.concat(data);
+            response.forEach((label) => {
+                labels = labels.concat(label);
             });
 
             return {
@@ -202,8 +202,8 @@ const dataReducer = (state = initialState, action) => {
             const { response } = payload;
             let checklists = [...state.checklists];
 
-            response.forEach(({ data }) => {
-                checklists = checklists.concat(data);
+            response.forEach((checklist) => {
+                checklists = checklists.concat(checklist);
             });
             
             return {
@@ -238,25 +238,6 @@ const dataReducer = (state = initialState, action) => {
             };
         }
 
-        case USER_RECEIVED: {
-            const { user } = payload;
-
-            return {
-                ...state,
-                member: user,
-            };
-        }
-
-        case USER_RECEIVED_FAILURE: {
-            const { error } = payload;
-            console.log("Error occurred while receiving user's data: " + error);
-
-            return {
-                ...state,
-                fetchFailed: true,
-            };
-        }
-
         case CARD_UPDATE: {
             const { card, data } = payload;
 
@@ -279,7 +260,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case CARD_UPDATE_FAILURE: {
-            const { card, error } = payload;
+            const { card } = payload;
 
             const cards = [...state.cards];
 
@@ -324,7 +305,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case CARD_CREATE_FAILURE: {
-            const { error, id } = payload;
+            const { id } = payload;
 
             const cards = [...state.cards];
 
@@ -498,7 +479,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case LABEL_CREATE_FAILURE: {
-           const { error, id } = payload;
+           const { id } = payload;
 
             const labels = [...state.labels];
 
@@ -595,7 +576,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case CHECKLIST_CREATE: {
-            const { card, copyFrom, data } = payload;
+            const { copyFrom, data } = payload;
 
             const checklists = [...state.checklists];
 
@@ -700,7 +681,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case CHECKLIST_ITEM_ADD_FAILURE: {
-            const { error, id, idChecklist } = payload;
+            const { id, idChecklist } = payload;
 
             const checklists = [...state.checklists];
 
@@ -742,7 +723,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case CHECKLIST_REMOVE_FAILURE: {
-            const { error, checklist } = payload;
+            const { checklist } = payload;
 
             const checklists = [...state.checklists];
             const cards = [...state.cards];
@@ -789,24 +770,6 @@ const dataReducer = (state = initialState, action) => {
                 ...state,
                 checklists
             }
-        }
-
-        case FETCH_CHECKITEMS_SUCCESS: {
-            const { checklist, data } = payload;
-
-            const checklists = [...state.checklists];
-
-            const list = checklists.find((l) => l.id === checklist.id);
-            list.checkItems = [...data];
-
-            return {
-                ...state,
-                checklists
-            }
-        }
-
-        case FETCH_CHECKITEMS_FAILURE: {
-            return state;
         }
 
         case FETCH_CARD_SUCCESS: {
@@ -897,7 +860,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_COPY_CARD: {
-            const { card, board, list, sourceCard } = payload;
+            const { card, sourceCard } = payload;
 
             const cards = [...state.cards];
 
@@ -973,7 +936,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_CREATE_CHECKITEM: {
-            const { card, board, checklist, checkItem } = payload;
+            const { checklist, checkItem } = payload;
 
             const checklists = [...state.checklists];
             checklists.map((list) => {
@@ -992,7 +955,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_CARD: {
-            const { old, card, list, board } = payload;
+            const { old, card } = payload;
 
             const cards = [...state.cards];
 
@@ -1011,7 +974,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_DELETE_CARD: {
-            const { card, list, board } = payload;
+            const { card } = payload;
 
             const cards = [...state.cards];
 
@@ -1028,7 +991,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_DELETE_CHECKITEM: {
-            const { board, card, checklist, checkItem } = payload;
+            const { checklist, checkItem } = payload;
 
             const checklists = [...state.checklists];
 
@@ -1044,7 +1007,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_DELETE_LABEL: {
-            const { label, board } = payload;
+            const { label } = payload;
 
             const labels = [...state.labels];
 
@@ -1061,7 +1024,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_MOVE_CARD_TO_BOARD: {
-            const { card, board, sourceBoard, list } = payload;
+            const { card, board, list } = payload;
 
             const cards = [...state.cards];
 
@@ -1082,7 +1045,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_MOVE_LIST_TO_BOARD: {
-            const { list, board, sourceBoard, member } = payload;
+            const { list, board } = payload;
 
             const lists = [...state.lists];
             const cards = [...state.cards];
@@ -1109,7 +1072,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_REMOVE_LABEL_FROM_CARD: {
-            const { card, board, label } = payload;
+            const { card, label } = payload;
 
             const cards = [...state.cards];
 
@@ -1156,7 +1119,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_LABEL: {
-            const { old, label, board } = payload;
+            const { old, label } = payload;
 
             const cards = [...state.cards];
             const labels = [...state.labels];
@@ -1189,7 +1152,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_LIST: {
-            const { old, list, board } = payload;
+            const { old, list } = payload;
 
             const lists = [...state.lists];
             const customLists = [...state.customLists];
@@ -1249,7 +1212,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_REMOVE_CHECKLIST_FROM_CARD: {
-            const { card, board, checklist } = payload;
+            const { card, checklist } = payload;
 
             const checklists = [...state.checklists];
             const cards = [...state.cards];
@@ -1270,7 +1233,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_CHECKITEM: {
-            const { board, card, checklist, checkItem, old } = payload;
+            const { checklist, checkItem, old } = payload;
 
             const checklists = [...state.checklists];
 
@@ -1290,7 +1253,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_CHECKITEM_STATE_ON_CARD: {
-            const { board, card, checklist, checkItem } = payload;
+            const { checklist, checkItem } = payload;
             
             const checklists = [...state.checklists];
 
@@ -1306,7 +1269,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_UPDATE_CHECKLIST: {
-            const { board, card, checklist, old } = payload;
+            const { checklist, old } = payload;
 
             const checklists = [...state.checklists];
 
@@ -1325,7 +1288,7 @@ const dataReducer = (state = initialState, action) => {
         }
 
         case WEBHOOK_REMOVE_MEMBER_FROM_BOARD: {
-            const { board, memberCreator } = payload;
+            const { board } = payload;
 
             let checklists = [...state.checklists];
             let cards = [...state.cards];

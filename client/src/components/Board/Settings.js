@@ -12,9 +12,6 @@ import {
     StyledIcon
 } from '../../styles';
 
-import {
-    actionSaveSelectedBoards,
-} from '../../actions';
 import { sessionService } from 'redux-react-session';
 
 
@@ -137,7 +134,6 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
-    actionSaveSelectedBoards,
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Settings));

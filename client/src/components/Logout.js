@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { sessionService } from 'redux-react-session';
 
 import { actionRemoveAuth } from '../actions';
 
@@ -9,11 +8,10 @@ import { actionRemoveAuth } from '../actions';
 class Logout extends Component {
 	// Logs out user and removes his data from session, then redirect to login
 	componentDidMount = () => {
+		window.Trello.deauthorize()
 		this.props.actionRemoveAuth();
-		sessionService.deleteUser()
-			.then(() => {
-				this.props.history.push('/user/login');
-			});
+
+		this.props.history.push('/');
 	};
 
 	render = () => {

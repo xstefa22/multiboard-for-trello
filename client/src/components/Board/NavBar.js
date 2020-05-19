@@ -105,7 +105,7 @@ class NavBar extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        member: state.dataReducer.member,
+        member: state.authReducer.member,
     };
 }
 

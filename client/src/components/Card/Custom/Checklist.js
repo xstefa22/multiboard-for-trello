@@ -138,14 +138,14 @@ class Checklist extends Component {
                         {this.renderCardChecklistsItems()}
                     </StyledCheckListContent>
                     <StyledCheckListAddItem>
-                        { !this.state.clickedOnAdd &&
+                        { !this.state.clickedOnAdd ?
                             <StyledButton 
                                 className="subtle"
                                 onClick={this.handleComposer}
                             >
                                 Add item
                             </StyledButton>
-                        ||
+                        :
                             <React.Fragment>
                                 <StyledTextArea
                                     className="checklist-new-item-text"

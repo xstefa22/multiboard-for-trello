@@ -1,12 +1,8 @@
-import { SET_AUTH, REMOVE_AUTH, ONE_TIME_AUTH } from '../actions/actionTypes';
+import { SET_AUTH, REMOVE_AUTH } from '../actions/actionTypes';
 
 const initialState = {
 	loggedIn: false,
-	oneTime: false,
-
-	username: null,
-	key: null,
-	token: null,
+	member: undefined,
 }
 
 const authReducer = (state = initialState, action) => {
@@ -14,26 +10,17 @@ const authReducer = (state = initialState, action) => {
 
 	switch (action.type) {
 		case SET_AUTH: {
-			const { username, key, token } = payload;
-
+			const { member } = payload;
+			
 			return {
 				...state,
 				loggedIn: true,
-				username,
-				key,
-				token,
+				member,
 			};
 		}
 
 		case REMOVE_AUTH: {
 			return initialState;
-		}
-
-		case ONE_TIME_AUTH: {
-			return {
-				...state,
-				oneTime: true,
-			}
 		}
 
 		default: {

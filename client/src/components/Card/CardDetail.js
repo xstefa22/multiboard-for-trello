@@ -111,8 +111,6 @@ class CardDetail extends Component {
 
     // Handles hiding popup if clicked outside of popup
     handleOutsideClick = (event) => {
-        const { checklistToEditIndex, checklistItemToEditIndex } = this.state;
-
         if ((this.cardNameEditable && this.cardNameEditable.current && this.cardNameEditable.current.contains(event.target)) || 
             (this.cardDescEditable && this.cardDescEditable.current && this.cardDescEditable.current.contains(event.target))) {
             return;
@@ -245,14 +243,14 @@ class CardDetail extends Component {
                         }
                         <StyledDialogHeader>
                             <StyledDialogTitle>
-                                { !this.state.clickedOnEditCardName &&
+                                { !this.state.clickedOnEditCardName ?
                                     <StyledH2
                                         className="detail-title"
                                         onClick={() => this.handleComposer('editCardName')}
                                     >
                                         {this.state.cardNameValue}
                                     </StyledH2>
-                                ||
+                                :
                                     <StyledTextArea
                                         className="is-editing mod-card-back-title"
                                         onChange={(event) => this.setState({ cardNameValue: event.target.value })}
@@ -318,14 +316,14 @@ class CardDetail extends Component {
                                         <h3>Description</h3>
                                     </StyledDialogModuleTitle>
                                     <StyledDescription>
-                                        { !this.state.clickedOnEditCardDesc && 
+                                        { !this.state.clickedOnEditCardDesc ? 
                                             <StyledText
                                                 className={"fake-text-area " + (this.props.data.desc ? '' : 'empty') + ""}
                                                 onClick={() => this.handleComposer('editCardDesc')}
                                             >
                                                 {this.props.data.desc ? this.props.data.desc : 'Add a more detailed description...'}
                                             </StyledText>
-                                        ||
+                                        :
                                             <React.Fragment>
                                                 <StyledTextArea
                                                     className="is-editing"
@@ -389,12 +387,12 @@ class CardDetail extends Component {
                                     <StyledIcon className="icon-sm"><MdContentCopy/></StyledIcon>
                                     <span>Copy</span>
                                 </StyledButtonLink>
-                                { !this.state.clickedOnArchive &&
+                                { !this.state.clickedOnArchive ?
                                     <StyledButtonLink onClick={() => this.setState({ clickedOnArchive: true })}>
                                         <StyledIcon className="icon-sm"><FiArchive/></StyledIcon>
                                         <span>Archive</span>
                                     </StyledButtonLink>
-                                ||
+                                :
                                     <React.Fragment>
                                         <StyledButtonLink onClick={() => this.setState({ clickedOnArchive: false })}>
                                             <StyledIcon className="icon-sm"><IoMdRefresh/></StyledIcon>

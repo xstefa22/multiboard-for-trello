@@ -14,7 +14,6 @@ import dateFnsFormat from 'date-fns/format';
 import dateFnsParse from 'date-fns/parse';
 import parseISO from 'date-fns/parseISO';
 import dayjs from 'dayjs';
-import format from 'date-fns/fp/format';
 
 import DayPickerNavbar from './DayPickerNavbar';
 import DayPickerCaption from './DayPickerCaption';

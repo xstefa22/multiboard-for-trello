@@ -5,7 +5,6 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { Redirect } from 'react-router-dom';
 import { sessionService } from 'redux-react-session';
 import socketIOClient from 'socket.io-client';
-import jwt from 'jsonwebtoken';
 
 import config from '../../config.js';
 import List from '../List/List';
@@ -14,7 +13,7 @@ import NavBar from './NavBar';
 
 import {
     actionFetchBoards, actionFetchLists, actionFetchCards, actionCreateCustomLists, actionCardMove, actionListMove, actionFetchLabels, actionSetAuth, actionRemoveAuth,
-    actionUpdateReceived, actionFetchUserAndCreateWebhook, actionSetSelectedBoards, actionFetchChecklists,actionSetOneTime
+    actionUpdateReceived, actionCheckAndCreateWebhook, actionSetSelectedBoards, actionFetchChecklists,
 } from '../../actions';
 
 import { StyledBoardWrapper } from '../../styles';
@@ -35,50 +34,33 @@ class Board extends Component {
     componentDidMount = () => {
         if (this.props.loggedIn) {
             sessionService.loadUser()
-            .then(({ jwtToken, boardIds }) => {
-                this.props.actionSetSelectedBoards(boardIds);
+            .then(({ boardIds }) => {
+                this.props.actionSetSelectedBoards(boardIds ? boardIds : null);
             }).catch((error) => {
             });
-            this.props.actionFetchBoards();
-            if (!config.onlyClient){
-                this.props.actionFetchUserAndCreateWebhook();
-            }
-        } else {
-            sessionService.loadUser()
-            .then(({ jwtToken, boardIds }) => {
-                this.props.actionSetSelectedBoards(boardIds);
-                if (config.dev){
-                    this.props.actionSetAuth(config.username, config.apiKey, config.token);
-                } else {
-                    const { username, apiKey, token, oneTime } = jwt.decode(jwtToken);
 
-                    this.props.actionSetAuth(username, apiKey, token);
-                    if (oneTime) {
-                        this.props.actionSetOneTime();
-                    }
-                }
-            }).catch((error) => {
-                this.props.history.push('/user/login');
-            });
-        }
+            this.props.actionFetchBoards();
+            this.props.actionCheckAndCreateWebhook();
         
-        // Listens to server sending trello webhook updates
-        if (!config.onlyClient && this.props.loggedIn) {
-            const token = jwt.sign({ username: this.props.username, oneTime: this.props.oneTime }, this.props.username, { expiresIn: '2h' });
+            // Listens to server sending trello webhook updates
             const socket = socketIOClient(config.server);
+            const data = { idMember: this.props.member.id };
+            
             socket.on('connect', () => {
-                socket.emit('authorization', token, (answer) => {
+                socket.emit('authorization', data, () => {
                 });
             });
+
             socket.on('update', (data) => {
-                if (data.model.username === this.props.username) {
+                if (data.model.id === this.member.id) {
                     this.props.actionUpdateReceived(data);
                 }
             });
+
             socket.on('disconnect', () => {
-                socket.emit('deauthorization', token, (answer) => {
+                socket.emit('deauthorization', data, () => {
                 });
-            })
+            });
         }
     };
 
@@ -178,7 +160,6 @@ class Board extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        loggedIn: state.authReducer.loggedIn,
         boards: state.dataReducer.boards,
         boardsReceived: state.dataReducer.boardsReceived,
         cardsReceived: state.dataReducer.cardsReceived,
@@ -187,17 +168,17 @@ const mapStateToProps = (state) => {
         listsReceived: state.dataReducer.listsReceived,
         customLists: state.dataReducer.customLists,
         customListsCreated: state.dataReducer.customListsCreated,
-        selectedBoardIds: state.dataReducer.selectedBoardIds,
-        username: state.authReducer.username,
-        oneTime: state.authReducer.oneTime,
+
+        loggedIn: state.authReducer.loggedIn,
+        member: state.authReducer.member,
     };
 }
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
     actionFetchBoards, actionFetchLists, actionFetchCards, actionCreateCustomLists,
     actionCardMove, actionListMove, actionFetchLabels, actionSetAuth, actionRemoveAuth,
-    actionFetchUserAndCreateWebhook, actionUpdateReceived, actionSetSelectedBoards,
-    actionFetchChecklists, actionSetOneTime
+    actionCheckAndCreateWebhook, actionUpdateReceived, actionSetSelectedBoards,
+    actionFetchChecklists
 }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Board);
