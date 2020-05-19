@@ -34,8 +34,10 @@ class LoginForm extends Component {
         window.Trello.authorize({
             type: "popup",
             name: config.appName,
-            read: config.read,
-            write: config.write,
+            scope: {
+                read: config.read,
+                write: config.write
+            },
             expiration: config.expiration,
             interactive: false,
             success: this.onSuccess,
@@ -44,7 +46,7 @@ class LoginForm extends Component {
     };
 
     onSuccess = () => {
-        window.Trello.get('/members/me', (response) => {
+        window.Trello.get('/members/me', {}, (response) => {
             this.props.actionSetAuth(response);
 
             this.props.history.push('/');
@@ -57,8 +59,10 @@ class LoginForm extends Component {
         window.Trello.authorize({
             type: "popup",
             name: config.appName,
-            read: config.read,
-            write: config.write,
+            scope: {
+                read: config.read,
+                write: config.write
+            },
             expiration: config.expiration,
             success: this.onSuccess,
             error: () => {},
