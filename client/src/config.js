@@ -4,7 +4,7 @@ const config = {
     
     appName: "Multiboard for Trello",
     read: true,
-    false: true,
+    write: true,
     expiration: '30days',
 
     // If you don't want to use Webhooks for receiving updates set true for onlyClient
