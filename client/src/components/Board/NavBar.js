@@ -16,6 +16,10 @@ class NavBar extends Component {
     constructor(props) {
         super(props);
 
+        this.handleClick = this.handleClick.bind(this);
+        this.handlePopOverClose = this.handlePopOverClose.bind(this);
+        this.handleLogout = this.handleLogout.bind(this);
+
         this.state = {
             settingsOpen: false,
             anchorElement: null
@@ -24,6 +28,13 @@ class NavBar extends Component {
 
     handleClick = (event) => {
         this.setState({ anchorElement: event.currentTarget });
+    }
+
+    handleLogout = () => {
+        window.Trello.deauthorize()
+		this.props.actionRemoveAuth();
+
+		this.props.history.push('/');
     }
 
     handlePopOverClose = () => {
@@ -86,7 +97,7 @@ class NavBar extends Component {
                                 </StyledUListItem>
                                 <StyledUListItem
                                     className="member-popup-item" 
-                                    onClick={() => this.props.history.push('/user/logout')}
+                                    onClick={this.handleLogout}
                                 >
                                     Log Out
                                 </StyledUListItem>
