@@ -4,7 +4,7 @@ A project management web application which allows you to see all your list and c
 You can see project running [here](http://www.trello-multiboard.com/).
 Any feedback about project, code, any impovements ideas are highly appreciated! 
 
-  [Contact me via mail here](mailto:khouby3@gmail.com?subject=[MutliboardForTrello])
+  [Contact me via mail here.](mailto:khouby3@gmail.com?subject=[MutliboardForTrello])
 
 ## Build With
 * [React](https://reactjs.org/) - Frontend
@@ -30,7 +30,7 @@ and lot more...
 	* Move, Copy, Archive and Delete
 * Most of Webhook actions
 
-More to come... if you want to see any other features from Trello being supported, [let me know](mailto:khouby3@gmail.com?subject=[MutliboardForTrello])
+More to come... if you want to see any other features from Trello being supported, [let me know.](mailto:khouby3@gmail.com?subject=[MutliboardForTrello])
 
 
 ## Running locally
